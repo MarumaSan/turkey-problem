@@ -21,26 +21,57 @@ const getBox = (xMin: number, xMax: number, yMin: number, yMax: number, zMin: nu
     return { args: [w, h, d] as [number, number, number], position: [x, y, z] as [number, number, number] };
 };
 
+// Helper to merge boxes into a single geometry using CSG
+const mergeBoxesToGeometry = (boxes: { args: [number, number, number]; position: [number, number, number] }[]) => {
+    if (boxes.length === 0) return new THREE.BoxGeometry(0, 0, 0);
+    if (boxes.length === 1) {
+        const box = boxes[0];
+        const geom = new THREE.BoxGeometry(...box.args);
+        geom.translate(...box.position);
+        return geom;
+    }
+
+    const evaluator = new Evaluator();
+    evaluator.useGroups = false;
+    evaluator.attributes = ['position', 'normal'];
+
+    const firstBox = boxes[0];
+    let resultBrush = new Brush(new THREE.BoxGeometry(...firstBox.args));
+    resultBrush.position.set(...firstBox.position);
+    resultBrush.updateMatrixWorld();
+
+    for (let i = 1; i < boxes.length; i++) {
+        const box = boxes[i];
+        const brush = new Brush(new THREE.BoxGeometry(...box.args));
+        brush.position.set(...box.position);
+        brush.updateMatrixWorld();
+        resultBrush = evaluator.evaluate(resultBrush, brush, ADDITION);
+    }
+
+    const mergedGeometry = mergeVertices(resultBrush.geometry);
+    mergedGeometry.computeVertexNormals();
+    return mergedGeometry;
+};
+
 function Piece({ boxes, color, position }: { boxes: { args: [number, number, number]; position: [number, number, number] }[]; color: string; position: [number, number, number] }) {
+    const geometry = useMemo(() => mergeBoxesToGeometry(boxes), [boxes]);
+
     return (
         // @ts-ignore
         <motion.group
             animate={{ x: position[0], y: position[1], z: position[2] }}
             transition={{ type: "spring", stiffness: 40, damping: 12 }}
         >
-            {boxes.map((box, i) => (
-                <mesh key={i} position={box.position} castShadow receiveShadow>
-                    <boxGeometry args={box.args} />
-                    <meshStandardMaterial
-                        color={color}
-                        metalness={0.2}
-                        roughness={0.7}
-                        emissive={color}
-                        emissiveIntensity={0.1}
-                    />
-                    <Edges color="black" threshold={15} />
-                </mesh>
-            ))}
+            <mesh geometry={geometry} castShadow receiveShadow>
+                <meshStandardMaterial
+                    color={color}
+                    metalness={0.2}
+                    roughness={0.7}
+                    emissive={color}
+                    emissiveIntensity={0.1}
+                />
+                <Edges color="black" threshold={45} />
+            </mesh>
         </motion.group>
     );
 }

@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import * as THREE from 'three';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Environment, ContactShadows, Edges } from '@react-three/drei';
 import { motion } from 'framer-motion-3d';
 import { ADDITION, Brush, Evaluator } from 'three-bvh-csg';
 import { ArrowLeft, ArrowRight, RotateCcw } from 'lucide-react';
+import { mergeVertices } from 'three-stdlib';
 
 const COLORS = ['#ef4444', '#22c55e', '#3b82f6', '#eab308'];
 
@@ -88,7 +89,9 @@ const OFFSETS = [
 
 // Helper to merge boxes into a single geometry using CSG
 const mergeBoxesToGeometry = (boxes: { args: [number, number, number]; position: [number, number, number] }[]) => {
-  if (boxes.length === 0) return new THREE.BoxGeometry(0, 0, 0); // Should not happen
+  if (boxes.length === 0) return new THREE.BoxGeometry(0, 0, 0);
+
+  // For single box, return basic geometry
   if (boxes.length === 1) {
     const box = boxes[0];
     const geom = new THREE.BoxGeometry(...box.args);
@@ -97,50 +100,36 @@ const mergeBoxesToGeometry = (boxes: { args: [number, number, number]; position:
   }
 
   const evaluator = new Evaluator();
+  evaluator.useGroups = false; // Force single group to help welding
+
+  const EPS = 0.01; // Small expansion to ensure robust CSG union of touching faces
+
   // Start with the first box
-  let resultBrush = new Brush(new THREE.BoxGeometry(...boxes[0].args));
-  resultBrush.position.set(...boxes[0].position);
+  const firstBox = boxes[0];
+  let resultBrush = new Brush(
+    new THREE.BoxGeometry(firstBox.args[0] + EPS, firstBox.args[1] + EPS, firstBox.args[2] + EPS)
+  );
+  resultBrush.position.set(...firstBox.position);
   resultBrush.updateMatrixWorld();
 
   for (let i = 1; i < boxes.length; i++) {
     const box = boxes[i];
-    const brush = new Brush(new THREE.BoxGeometry(...box.args));
+    const brush = new Brush(
+      new THREE.BoxGeometry(box.args[0] + EPS, box.args[1] + EPS, box.args[2] + EPS)
+    );
     brush.position.set(...box.position);
     brush.updateMatrixWorld();
 
     resultBrush = evaluator.evaluate(resultBrush, brush, ADDITION);
   }
 
-  return resultBrush.geometry;
+  // Key Step: Merge vertices to remove seams (duplicate vertices at boundary)
+  // CSG usually returns non-indexed geometry. mergeVertices converts to indexed and welds close vertices.
+  const mergedGeometry = mergeVertices(resultBrush.geometry);
+  mergedGeometry.computeVertexNormals();
+
+  return mergedGeometry;
 };
-
-function Piece({ boxes, color, position }: { boxes: { args: [number, number, number]; position: [number, number, number] }[]; color: string; position: [number, number, number] }) {
-  // Memoize geometry generation
-  const geometry = useMemo(() => {
-    return mergeBoxesToGeometry(boxes);
-  }, [boxes]);
-
-  return (
-    // @ts-ignore
-    <motion.group
-      animate={{ x: position[0], y: position[1], z: position[2] }}
-      transition={{ type: "spring", stiffness: 40, damping: 12 }}
-    >
-      <mesh geometry={geometry} castShadow receiveShadow>
-        <meshStandardMaterial
-          color={color}
-          metalness={0.2}
-          roughness={0.7}
-          emissive={color}
-          emissiveIntensity={0.1}
-        />
-        {/* Edges now only appear on the merged outer shell */}
-        <Edges color="black" threshold={15} />
-      </mesh>
-    </motion.group>
-  );
-}
-
 export default function TurkeyDissection() {
   const [step, setStep] = useState(0);
   const [exploded, setExploded] = useState(false);
@@ -211,6 +200,7 @@ export default function TurkeyDissection() {
                 />
               );
             })}
+            {/* Outline box for current overall shape bounds if desired */}
           </group>
 
           <ContactShadows position={[0, -4.1, 0]} opacity={0.5} scale={50} blur={2} far={4.5} />
@@ -243,3 +233,30 @@ export default function TurkeyDissection() {
     </div>
   );
 }
+
+function Piece({ boxes, color, position }: { boxes: { args: [number, number, number]; position: [number, number, number] }[]; color: string; position: [number, number, number] }) {
+  return (
+    // @ts-ignore
+    <motion.group
+      animate={{ x: position[0], y: position[1], z: position[2] }}
+      transition={{ type: "spring", stiffness: 40, damping: 12 }}
+    >
+      {boxes.map((box, i) => (
+        <mesh key={i} position={box.position} castShadow receiveShadow>
+          <boxGeometry args={box.args} />
+          <meshStandardMaterial
+            color={color}
+            metalness={0.2}
+            roughness={0.7}
+            emissive={color}
+            emissiveIntensity={0.1}
+          />
+          {/* Edges */}
+          <Edges color="black" threshold={15} />
+        </mesh>
+      ))}
+    </motion.group>
+  );
+}
+
+

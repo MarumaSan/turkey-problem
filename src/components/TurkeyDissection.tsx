@@ -101,13 +101,12 @@ const mergeBoxesToGeometry = (boxes: { args: [number, number, number]; position:
 
   const evaluator = new Evaluator();
   evaluator.useGroups = false; // Force single group to help welding
-
-  const EPS = 0.01; // Small expansion to ensure robust CSG union of touching faces
+  evaluator.attributes = ['position', 'normal']; // Only keep position and normal to ensure clean merge
 
   // Start with the first box
   const firstBox = boxes[0];
   let resultBrush = new Brush(
-    new THREE.BoxGeometry(firstBox.args[0] + EPS, firstBox.args[1] + EPS, firstBox.args[2] + EPS)
+    new THREE.BoxGeometry(...firstBox.args)
   );
   resultBrush.position.set(...firstBox.position);
   resultBrush.updateMatrixWorld();
@@ -115,7 +114,7 @@ const mergeBoxesToGeometry = (boxes: { args: [number, number, number]; position:
   for (let i = 1; i < boxes.length; i++) {
     const box = boxes[i];
     const brush = new Brush(
-      new THREE.BoxGeometry(box.args[0] + EPS, box.args[1] + EPS, box.args[2] + EPS)
+      new THREE.BoxGeometry(...box.args)
     );
     brush.position.set(...box.position);
     brush.updateMatrixWorld();

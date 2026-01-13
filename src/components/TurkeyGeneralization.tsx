@@ -1,10 +1,11 @@
-'use client';
-
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import * as THREE from 'three';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Environment, ContactShadows, Edges } from '@react-three/drei';
 import { motion } from 'framer-motion-3d';
+import { ADDITION, Brush, Evaluator } from 'three-bvh-csg';
+import { mergeVertices } from 'three-stdlib';
+import { ArrowRightLeft, Box, LayoutTemplate } from 'lucide-react';
 
 const COLORS = ['#ef4444', '#22c55e', '#3b82f6', '#eab308'];
 
@@ -20,16 +21,75 @@ const getBox = (xMin: number, xMax: number, yMin: number, yMax: number, zMin: nu
     return { args: [w, h, d] as [number, number, number], position: [x, y, z] as [number, number, number] };
 };
 
+// Helper to merge boxes into a single geometry using CSG
+const mergeBoxesToGeometry = (boxes: { args: [number, number, number]; position: [number, number, number] }[]) => {
+    if (boxes.length === 0) return new THREE.BoxGeometry(0, 0, 0);
+    if (boxes.length === 1) {
+        const box = boxes[0];
+        const geom = new THREE.BoxGeometry(...box.args);
+        geom.translate(...box.position);
+        return geom;
+    }
+
+    const evaluator = new Evaluator();
+    evaluator.useGroups = false;
+    evaluator.attributes = ['position', 'normal'];
+
+    const firstBox = boxes[0];
+    let resultBrush = new Brush(new THREE.BoxGeometry(...firstBox.args));
+    resultBrush.position.set(...firstBox.position);
+    resultBrush.updateMatrixWorld();
+
+    for (let i = 1; i < boxes.length; i++) {
+        const box = boxes[i];
+        const brush = new Brush(new THREE.BoxGeometry(...box.args));
+        brush.position.set(...box.position);
+        brush.updateMatrixWorld();
+        resultBrush = evaluator.evaluate(resultBrush, brush, ADDITION);
+    }
+
+    const mergedGeometry = mergeVertices(resultBrush.geometry);
+    mergedGeometry.computeVertexNormals();
+    return mergedGeometry;
+};
+
+function Piece({ boxes, color, position }: { boxes: { args: [number, number, number]; position: [number, number, number] }[]; color: string; position: [number, number, number] }) {
+    const geometry = useMemo(() => mergeBoxesToGeometry(boxes), [boxes]);
+
+    return (
+        // @ts-ignore
+        <motion.group
+            animate={{ x: position[0], y: position[1], z: position[2] }}
+            transition={{ type: "spring", stiffness: 40, damping: 12 }}
+        >
+            <mesh geometry={geometry} castShadow receiveShadow>
+                <meshStandardMaterial
+                    color={color}
+                    metalness={0.2}
+                    roughness={0.7}
+                    emissive={color}
+                    emissiveIntensity={0.1}
+                />
+                <Edges color="black" threshold={30} />
+            </mesh>
+        </motion.group>
+    );
+}
+
 export default function TurkeyGeneralization() {
     const [k, setK] = useState(4); // Default k=4 (L=12)
+    const [isPrism, setIsPrism] = useState(false); // Shape toggle
 
     // Dimensions based on k
     const L = 3 * k;
     const A = 2 * k;
     const B = 6.75 * k;
 
+    // Scale factor relative to base model (k=4)
+    const s = k / 4;
+
     // Re-calculate pieces based on current K scale
-    const pieces = [
+    const pieces = useMemo(() => [
         {
             id: 1,
             boxes: [
@@ -62,14 +122,64 @@ export default function TurkeyGeneralization() {
                 getBox(6, 12, 4, 12, 4, 12, k),
             ],
         },
-    ];
+    ], [k]);
 
-    // For generalization view, we just show the exploded or assembled cube is fine.
-    // Let's show the assembled cube but allow scaling.
-    // Center: The cube center at k=4 is (6, 6, 6).
-    // At scale k, center is (1.5k, 1.5k, 1.5k).
-    // We center the group negatively.
-    const centerOffset = [-1.5 * k, -1.5 * k, -1.5 * k] as [number, number, number];
+    // Offsets for Prism State (scaled)
+    // Base offsets for k=4 (Step 2 in Dissection):
+    // P1: 0,0,0
+    // P2: 9, 0, -4
+    // P3: 6, -4, 0
+    // P4: 15, -4, -4
+    const offsets = useMemo(() => {
+        if (!isPrism) return [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]];
+        return [
+            [0, 0, 0],
+            [9 * s, 0, -4 * s],
+            [6 * s, -4 * s, 0],
+            [15 * s, -4 * s, -4 * s]
+        ];
+    }, [isPrism, s]);
+
+    // Auto-centering and floor calculation
+    const { centerOffset, floorY } = useMemo(() => {
+        let minX = Infinity, minY = Infinity, minZ = Infinity;
+        let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
+
+        pieces.forEach((piece, i) => {
+            const pos = offsets[i] as [number, number, number];
+
+            piece.boxes.forEach(box => {
+                const absoluteCenter = [
+                    pos[0] + box.position[0],
+                    pos[1] + box.position[1],
+                    pos[2] + box.position[2]
+                ];
+                const halfSize = [box.args[0] / 2, box.args[1] / 2, box.args[2] / 2];
+
+                minX = Math.min(minX, absoluteCenter[0] - halfSize[0]);
+                maxX = Math.max(maxX, absoluteCenter[0] + halfSize[0]);
+
+                minY = Math.min(minY, absoluteCenter[1] - halfSize[1]);
+                maxY = Math.max(maxY, absoluteCenter[1] + halfSize[1]);
+
+                minZ = Math.min(minZ, absoluteCenter[2] - halfSize[2]);
+                maxZ = Math.max(maxZ, absoluteCenter[2] + halfSize[2]);
+            });
+        });
+
+        const centerX = (minX + maxX) / 2;
+        const centerY = (minY + maxY) / 2;
+        const centerZ = (minZ + maxZ) / 2;
+
+        const height = maxY - minY;
+        const FLOAT_OFFSET = 3 * (s / 1); // Scale float offset slightly with size? Or keep constant. Keep constant for consistency.
+        const calculatedFloorY = (-height / 2) - 3; // Float by 3 units
+
+        return {
+            centerOffset: [-centerX, -centerY, -centerZ] as [number, number, number],
+            floorY: calculatedFloorY
+        };
+    }, [pieces, offsets, s]);
 
     return (
         <div className="flex flex-col items-center gap-8 w-full">
@@ -88,6 +198,20 @@ export default function TurkeyGeneralization() {
                     onChange={(e) => setK(parseFloat(e.target.value))}
                     className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-orange-500"
                 />
+
+                <div className="flex justify-center pt-2">
+                    <button
+                        onClick={() => setIsPrism(!isPrism)}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all border ${isPrism
+                                ? 'bg-blue-600 border-blue-400 hover:bg-blue-500 text-white'
+                                : 'bg-gray-700 border-gray-500 hover:bg-gray-600 text-gray-200'
+                            }`}
+                    >
+                        {isPrism ? <LayoutTemplate size={18} /> : <Box size={18} />}
+                        {isPrism ? 'แสดงรูปทรงลูกบาศก์ (Cube)' : 'แสดงผลลัพธ์ (Prism)'}
+                    </button>
+                </div>
+
                 <div className="grid grid-cols-3 gap-4 text-center text-sm">
                     <div className="bg-gray-900 p-2 rounded-lg">
                         <div className="text-gray-400">ด้านลูกบาศก์ (L)</div>
@@ -109,7 +233,10 @@ export default function TurkeyGeneralization() {
 
             <div className="w-full h-[500px] bg-gray-900 rounded-3xl overflow-hidden shadow-2xl border border-gray-700 relative">
                 <div className="absolute top-4 left-4 z-10 text-white/50 text-sm pointer-events-none">
-                    แสดงรูปทรงลูกบาศก์เริ่มต้นที่ขนาด L = {L}
+                    {isPrism
+                        ? `รูปทรงสี่เหลี่ยมผืนผ้า (${A} x ${A} x ${B})`
+                        : `รูปทรงลูกบาศก์เริ่มต้น (${L} x ${L} x ${L})`
+                    }
                 </div>
                 <Canvas camera={{ position: [40, 40, 40], fov: 45 }} shadows>
                     <color attach="background" args={['#111827']} />
@@ -121,29 +248,24 @@ export default function TurkeyGeneralization() {
                     <Environment preset="city" />
 
                     {/* Dynamic scaling group */}
-                    <group position={[0, 0, 0]}>
-                        <group position={centerOffset}>
-                            {pieces.map((piece, index) => (
-                                // @ts-ignore
-                                <motion.group key={piece.id}>
-                                    {piece.boxes.map((box, i) => (
-                                        <mesh key={i} position={box.position} castShadow receiveShadow>
-                                            <boxGeometry args={box.args} />
-                                            <meshStandardMaterial
-                                                color={COLORS[index]}
-                                                metalness={0.2}
-                                                roughness={0.7}
-                                            />
-                                            <Edges color="black" threshold={15} />
-                                        </mesh>
-                                    ))}
-                                </motion.group>
-                            ))}
-                        </group>
-                    </group>
+                    <motion.group
+                        animate={{ x: centerOffset[0], y: centerOffset[1], z: centerOffset[2] }}
+                        transition={{ type: "spring", stiffness: 30, damping: 15 }}
+                    >
+                        {pieces.map((piece, index) => (
+                            <Piece
+                                key={piece.id}
+                                boxes={piece.boxes}
+                                color={COLORS[index]}
+                                position={offsets[index] as [number, number, number]}
+                            />
+                        ))}
+                    </motion.group>
 
-                    <ContactShadows position={[0, -L / 2 - 0.1, 0]} opacity={0.5} scale={60} blur={2} far={L + 5} />
-                    <gridHelper args={[100, 100, 0x444444, 0x222222]} position={[0, -L / 2, 0]} />
+                    <motion.group animate={{ y: floorY }} transition={{ type: "spring", stiffness: 30, damping: 15 }}>
+                        <ContactShadows position={[0, -0.1, 0]} opacity={0.5} scale={60} blur={2} far={L + 5} />
+                        <gridHelper args={[100, 100, 0x444444, 0x222222]} />
+                    </motion.group>
                 </Canvas>
             </div>
         </div>

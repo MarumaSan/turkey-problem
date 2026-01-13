@@ -140,7 +140,7 @@ export default function TurkeyDissection() {
   // Adjust visualization based on explode state (spread pieces out)
   const getExplodedPos = (basePos: number[], index: number) => {
     if (!exploded) return basePos;
-    const spread = 2; // Spread distance
+    const spread = 5; // Spread distance increased from 2 to 5
     // Simple spread logic away from center
     const xDir = index % 2 === 0 ? -1 : 1;
     const yDir = index < 2 ? -1 : 1;

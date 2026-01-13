@@ -1,0 +1,217 @@
+'use client';
+
+import React, { useState } from 'react';
+import * as THREE from 'three';
+import { Canvas } from '@react-three/fiber';
+import { OrbitControls, Environment, ContactShadows, Edges } from '@react-three/drei';
+import { motion } from 'framer-motion-3d';
+import { ArrowLeft, ArrowRight, RotateCcw } from 'lucide-react';
+
+const COLORS = ['#ef4444', '#22c55e', '#3b82f6', '#eab308'];
+
+// Box definition: [width, height, depth, x, y, z] (center coords)
+// Using corner-based ranges converted to center/size.
+const getBox = (xMin: number, xMax: number, yMin: number, yMax: number, zMin: number, zMax: number) => {
+  const w = xMax - xMin;
+  const h = yMax - yMin;
+  const d = zMax - zMin;
+  return { args: [w, h, d] as [number, number, number], position: [xMin + w / 2, yMin + h / 2, zMin + d / 2] as [number, number, number] };
+};
+
+const PIECES = [
+  // Piece 1: Bot1-Bot2
+  {
+    id: 1,
+    boxes: [
+      getBox(0, 6, 0, 8, 0, 8),
+      getBox(6, 9, 0, 4, 0, 8),
+      getBox(9, 12, 0, 4, 0, 4),
+    ],
+  },
+  // Piece 2: Bot1-Top2
+  {
+    id: 2,
+    boxes: [
+      getBox(0, 6, 0, 8, 8, 12),
+      getBox(6, 9, 0, 4, 8, 12),
+      getBox(9, 12, 0, 4, 4, 12),
+    ],
+  },
+  // Piece 3: Top1-Bot2
+  {
+    id: 3,
+    boxes: [
+      getBox(0, 3, 8, 12, 0, 8),
+      getBox(3, 6, 8, 12, 0, 4),
+      getBox(6, 12, 4, 12, 0, 4),
+    ],
+  },
+  // Piece 4: Top1-Top2
+  {
+    id: 4,
+    boxes: [
+      getBox(0, 3, 8, 12, 8, 12),
+      getBox(3, 6, 8, 12, 4, 12),
+      getBox(6, 12, 4, 12, 4, 12),
+    ],
+  },
+];
+
+const OFFSETS = [
+  // Step 0: Cube
+  [
+    [0, 0, 0],
+    [0, 0, 0],
+    [0, 0, 0],
+    [0, 0, 0],
+  ],
+  // Step 1: Slide XY (+6, -4, 0 for Top Pieces 3,4)
+  [
+    [0, 0, 0],
+    [0, 0, 0],
+    [6, -4, 0],
+    [6, -4, 0],
+  ],
+  // Step 2: Slide XZ (+9, 0, -4 for Top2 Pieces 2,4)
+  // Piece 1 (Bot1-Bot2): stable
+  // Piece 2 (Bot1-Top2): +9, 0, -4
+  // Piece 3 (Top1-Bot2): +6, -4, 0 (From step 1, stable in step 2)
+  // Piece 4 (Top1-Top2): (+6,-4,0) + (+9,0,-4) = (15, -4, -4)
+  [
+    [0, 0, 0],
+    [9, 0, -4],
+    [6, -4, 0],
+    [15, -4, -4],
+  ],
+];
+
+export default function TurkeyDissection() {
+  const [step, setStep] = useState(0);
+  const [exploded, setExploded] = useState(false);
+
+  const nextStep = () => setStep((s) => Math.min(s + 1, 2));
+  const prevStep = () => setStep((s) => Math.max(s - 1, 0));
+  const reset = () => { setStep(0); setExploded(false); };
+
+  // Adjust visualization based on explode state (spread pieces out)
+  const getExplodedPos = (basePos: number[], index: number) => {
+    if (!exploded) return basePos;
+    const spread = 2; // Spread distance
+    // Simple spread logic away from center
+    const xDir = index % 2 === 0 ? -1 : 1;
+    const yDir = index < 2 ? -1 : 1;
+    return [basePos[0] + xDir * spread, basePos[1] + yDir * spread, basePos[2]];
+  };
+
+  return (
+    <div className="flex flex-col items-center gap-8 w-full">
+      <div className="w-full h-[600px] bg-gray-900 rounded-3xl overflow-hidden shadow-2xl border border-gray-700 relative">
+        <div className="absolute top-4 left-4 z-10 bg-black/50 backdrop-blur-md p-4 rounded-xl text-white border border-white/10">
+          <h3 className="font-bold text-lg">ขั้นตอนที่ {step + 1} / 3</h3>
+          <p className="text-sm text-gray-300">
+            {step === 0 && 'เริ่มต้น: ลูกบาศก์ขนาด 12 x 12 x 12'}
+            {step === 1 && 'การตัดครั้งที่ 1: เลื่อนในแนวระนาบ XY'}
+            {step === 2 && 'การตัดครั้งที่ 2: เลื่อนในแนวระนาบ XZ'}
+          </p>
+          <p className="text-xs text-blue-400 mt-1 font-mono">
+            {step === 0 && 'เป้าหมาย: เลื่อนแกน X+6, แกน Y-4'}
+            {step === 1 && 'ผลลัพธ์: 18 x 8 x 12. ถัดไป: เลื่อนแกน X+9, แกน Z-4'}
+            {step === 2 && 'เสร็จสิ้น: ทรงสี่เหลี่ยม 27 x 8 x 8 (4 ชิ้น)'}
+          </p>
+
+          <div className="mt-4 flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="explode-view"
+              checked={exploded}
+              onChange={(e) => setExploded(e.target.checked)}
+              className="w-4 h-4 rounded border-gray-300 text-orange-500 focus:ring-orange-500"
+            />
+            <label htmlFor="explode-view" className="text-sm cursor-pointer select-none text-orange-300">
+              แยกชิ้นส่วนให้ดูชัดๆ (Explode View)
+            </label>
+          </div>
+        </div>
+
+        <Canvas camera={{ position: [30, 25, 30], fov: 45 }} shadows>
+          <color attach="background" args={['#111827']} />
+          <OrbitControls makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 1.8} />
+
+          <ambientLight intensity={0.4} />
+          <pointLight position={[20, 30, 20]} intensity={1} castShadow />
+          <directionalLight position={[-10, 10, -10]} intensity={0.5} />
+          <Environment preset="city" />
+
+          <group position={[-14, 0, -6]}> {/* Center roughly */}
+            {PIECES.map((piece, index) => {
+              const pos = OFFSETS[step][index] as [number, number, number];
+              const displayPos = getExplodedPos(pos, index);
+              return (
+                <Piece
+                  key={piece.id}
+                  boxes={piece.boxes}
+                  color={COLORS[index]}
+                  position={displayPos as [number, number, number]}
+                />
+              );
+            })}
+            {/* Outline box for current overall shape bounds if desired */}
+          </group>
+
+          <ContactShadows position={[0, -4.1, 0]} opacity={0.5} scale={50} blur={2} far={4.5} />
+          <gridHelper args={[60, 60, 0x444444, 0x222222]} position={[0, -4, 0]} />
+        </Canvas>
+      </div>
+
+      <div className="flex gap-4">
+        <button
+          onClick={prevStep}
+          disabled={step === 0}
+          className="flex items-center gap-2 px-6 py-3 bg-gray-800 hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-full font-semibold transition-all border border-gray-600"
+        >
+          <ArrowLeft size={20} /> ก่อนหน้า
+        </button>
+        <button
+          onClick={reset}
+          className="flex items-center gap-2 px-6 py-3 bg-gray-800 hover:bg-gray-700 rounded-full font-semibold transition-all border border-gray-600"
+        >
+          <RotateCcw size={20} /> เริ่มใหม่
+        </button>
+        <button
+          onClick={nextStep}
+          disabled={step === 2}
+          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-400 hover:to-red-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-full font-semibold shadow-lg shadow-orange-900/20 transition-all"
+        >
+          ขั้นตอนถัดไป <ArrowRight size={20} />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function Piece({ boxes, color, position }: { boxes: { args: [number, number, number]; position: [number, number, number] }[]; color: string; position: [number, number, number] }) {
+  return (
+    // @ts-ignore
+    <motion.group
+      animate={{ x: position[0], y: position[1], z: position[2] }}
+      transition={{ type: "spring", stiffness: 40, damping: 12 }}
+    >
+      {boxes.map((box, i) => (
+        <mesh key={i} position={box.position} castShadow receiveShadow>
+          <boxGeometry args={box.args} />
+          <meshStandardMaterial
+            color={color}
+            metalness={0.2}
+            roughness={0.7}
+            emissive={color}
+            emissiveIntensity={0.1}
+          />
+          {/* Edges */}
+          <Edges color="black" threshold={15} />
+        </mesh>
+      ))}
+    </motion.group>
+  );
+}
+
+

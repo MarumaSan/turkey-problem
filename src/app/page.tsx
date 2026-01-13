@@ -110,71 +110,71 @@ export default function Home() {
       </section>
 
       {/* Further Exploration */}
+      {/* Further Exploration: Challenge Questions */}
       <section className="bg-gradient-to-br from-gray-900 to-gray-800 p-8 rounded-3xl border border-gray-700 space-y-6 shadow-xl">
         <h2 className="text-2xl font-bold text-white flex items-center gap-3">
           <CheckCircle2 className="text-green-500" />
-          สิ่งที่น่าสนใจศึกษาต่อ (Further Exploration)
+          คำถามชวนคิดต่อ (Food for Thought)
         </h2>
-        <div className="text-gray-300 space-y-4 leading-relaxed">
-          <p>
-            ถ้าคุณชอบปริศนาการตัดแบ่งรูปทรงแบบนี้ ยังมีเรื่องน่ารู้อีกมากมายในโลกคณิตศาสตร์ ลองคลิกดูหัวข้อเหล่านี้ได้เลย:
+        <div className="space-y-4">
+          <p className="text-gray-300">
+            ลองตอบคำถามเหล่านี้ดูสิ (คลิกเพื่อดูเฉลยหรือแนวคิด):
           </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <a
-              href="https://en.wikipedia.org/wiki/Hilbert%27s_third_problem"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="bg-gray-800/50 p-4 rounded-xl border border-white/5 hover:border-orange-500/30 transition-all hover:bg-gray-800 hover:scale-[1.02] cursor-pointer group"
-            >
-              <h3 className="font-bold text-orange-400 mb-2 group-hover:text-orange-300 flex items-center gap-2">
-                Hilbert's Third Problem <ArrowRight size={16} />
-              </h3>
-              <p className="text-sm text-gray-400 group-hover:text-gray-300">
-                "รูปทรงที่มีปริมาตรเท่ากัน จะตัดมาประกอบเป็นอีกรูปได้เสมอไหม?" (คำตอบคือ ไม่เสมอไป!)
-              </p>
-            </a>
 
-            <a
-              href="https://mathworld.wolfram.com/HaberdashersProblem.html"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="bg-gray-800/50 p-4 rounded-xl border border-white/5 hover:border-blue-500/30 transition-all hover:bg-gray-800 hover:scale-[1.02] cursor-pointer group"
-            >
-              <h3 className="font-bold text-blue-400 mb-2 group-hover:text-blue-300 flex items-center gap-2">
-                Haberdasher's Puzzle <ArrowRight size={16} />
-              </h3>
-              <p className="text-sm text-gray-400 group-hover:text-gray-300">
-                ปริศนาชื่อดัง: เปลี่ยนสามเหลี่ยมให้เป็นสี่เหลี่ยมจัตุรัสด้วยการตัดเพียง 4 ชิ้น (สวยงามมาก)
-              </p>
-            </a>
+          <div className="grid grid-cols-1 gap-4">
+            {/* Question 1 */}
+            <details className="group bg-gray-800/50 p-4 rounded-xl border border-white/5 open:bg-gray-800 open:border-orange-500/30 transition-all cursor-pointer">
+              <summary className="font-bold text-orange-400 text-lg list-none flex items-center justify-between">
+                1. พื้นที่ผิวของวัตถุเปลี่ยนไปหรือไม่ หลังจากการตัดและประกอบใหม่?
+                <span className="text-gray-500 group-open:rotate-180 transition-transform">▼</span>
+              </summary>
+              <div className="mt-4 text-gray-300 space-y-2 pl-4 border-l-2 border-orange-500/30 animate-in fade-in slide-in-from-top-2">
+                <p><strong>คำตอบ: เปลี่ยนครับ (เพิ่มขึ้น)</strong></p>
+                <p>
+                  ลองคำนวณดูนะ:<br />
+                  - <strong>ลูกบาศก์เดิม (12³):</strong> มี 6 ด้าน x (12x12) = <strong>864 ตร.ซม.</strong><br />
+                  - <strong>ทรงสี่เหลี่ยมใหม่ (8x8x27):</strong> (8x8 x 2 ด้าน) + (8x27 x 4 ด้าน) = 128 + 864 = <strong>992 ตร.ซม.</strong>
+                </p>
+                <p className="text-sm text-gray-400">
+                  *พื้นที่ผิวที่เพิ่มขึ้น เกิดจาก "หน้าตัด" ที่เราหั่นเนื้อไก่งวงออกมาสัมผัสอากาศนั่นเอง
+                </p>
+              </div>
+            </details>
 
-            <a
-              href="https://mathworld.wolfram.com/Dissection.html"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="bg-gray-800/50 p-4 rounded-xl border border-white/5 hover:border-purple-500/30 transition-all hover:bg-gray-800 hover:scale-[1.02] cursor-pointer group"
-            >
-              <h3 className="font-bold text-purple-400 mb-2 group-hover:text-purple-300 flex items-center gap-2">
-                Minimal Cuts <ArrowRight size={16} />
-              </h3>
-              <p className="text-sm text-gray-400 group-hover:text-gray-300">
-                การท้าทายหาจำนวนครั้งที่ "ตัดน้อยที่สุด" เพื่อเปลี่ยนรูปทรงหนึ่งไปเป็นอีกรูปทรงหนึ่ง
-              </p>
-            </a>
+            {/* Question 2 */}
+            <details className="group bg-gray-800/50 p-4 rounded-xl border border-white/5 open:bg-gray-800 open:border-blue-500/30 transition-all cursor-pointer">
+              <summary className="font-bold text-blue-400 text-lg list-none flex items-center justify-between">
+                2. ถ้าช่องท้องไก่งวงแคบลงเป็น 6x6 ซม. แต่ยาวขึ้นเป็น 48 ซม. จะใช้วิธีเดิมได้ไหม?
+                <span className="text-gray-500 group-open:rotate-180 transition-transform">▼</span>
+              </summary>
+              <div className="mt-4 text-gray-300 space-y-2 pl-4 border-l-2 border-blue-500/30 animate-in fade-in slide-in-from-top-2">
+                <p><strong>คำตอบ: ใช้วิธีตัด 4 ชิ้นแบบเดิมไม่ได้ครับ</strong></p>
+                <p>
+                  ปริมาตรยังคงเท่ากัน (6x6x48 = 1728) แต่ลองเช็คสัดส่วนด้านดู:<br />
+                  ด้านลูกบาศก์ (12) : ด้านฐานใหม่ (6) = <strong>2 : 1</strong>
+                </p>
+                <p>
+                  วิธีตัดแบบขั้นบันไดที่เราใช้ ต้องการอัตราส่วน <strong>3 : 2</strong> ดังนั้นถ้าอัตราส่วนเปลี่ยน รูปร่างของชิ้นส่วนที่ตัดต้องเปลี่ยนไป อาจต้องตัดหลายขั้นกว่าเดิมหรือใช้วิธีอื่น
+                </p>
+              </div>
+            </details>
 
-            <a
-              href="http://erikdemaine.org/hinged/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="bg-gray-800/50 p-4 rounded-xl border border-white/5 hover:border-green-500/30 transition-all hover:bg-gray-800 hover:scale-[1.02] cursor-pointer group"
-            >
-              <h3 className="font-bold text-green-400 mb-2 group-hover:text-green-300 flex items-center gap-2">
-                Hinged Dissections <ArrowRight size={16} />
-              </h3>
-              <p className="text-sm text-gray-400 group-hover:text-gray-300">
-                การตัดแบ่งโดยที่ชิ้นส่วนยัง "ติดกัน" เหมือนมีบานพับ พับไปมาเพื่อเปลี่ยนรูปร่างได้
-              </p>
-            </a>
+            {/* Question 3 */}
+            <details className="group bg-gray-800/50 p-4 rounded-xl border border-white/5 open:bg-gray-800 open:border-purple-500/30 transition-all cursor-pointer">
+              <summary className="font-bold text-purple-400 text-lg list-none flex items-center justify-between">
+                3. ทำไมต้องตัดเป็น 4 ชิ้น? ตัดน้อยกว่านี้ได้ไหม?
+                <span className="text-gray-500 group-open:rotate-180 transition-transform">▼</span>
+              </summary>
+              <div className="mt-4 text-gray-300 space-y-2 pl-4 border-l-2 border-purple-500/30 animate-in fade-in slide-in-from-top-2">
+                <p><strong>แนวคิด:</strong></p>
+                <p>
+                  สำหรับวิธี "Slide Dissection" (การเลื่อนชิ้นส่วน) เพื่อเปลี่ยนจาก 3 หน่วย (12) ไปเป็น 2 หน่วย (8) จำเป็นต้องมีอย่างน้อย 4 ชิ้นเพื่อสร้าง "ขั้นบันได" ที่สลับกันลงตัวพอดี
+                </p>
+                <p>
+                  แต่ในทางทฤษฎีขั้นสูง (Hilbert's Third Problem) อาจมีวิธีการตัดแบบอื่นที่ซับซ้อนกว่านี้ แต่ 4 ชิ้นถือเป็นจำนวนที่น้อยที่สุดและเรียบง่ายที่สุดสำหรับรูปทรงเรขาคณิตแบบนี้ครับ
+                </p>
+              </div>
+            </details>
           </div>
         </div>
       </section>

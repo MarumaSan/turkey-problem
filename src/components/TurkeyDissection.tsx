@@ -185,7 +185,9 @@ export default function TurkeyDissection() {
     const height = maxY - minY;
     // The bottom of the model in World Space (after centering) is -Height/2
     // Because we shift the center to 0. So Top is +H/2, Bottom is -H/2.
-    const calculatedFloorY = -height / 2;
+    // User wants it to "float" (not touch grid). Add padding.
+    const FLOAT_OFFSET = 3;
+    const calculatedFloorY = (-height / 2) - FLOAT_OFFSET;
 
     return {
       centerOffset: [-centerX, -centerY, -centerZ] as [number, number, number],

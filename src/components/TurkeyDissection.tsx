@@ -158,6 +158,43 @@ export default function TurkeyDissection() {
   // With SPREAD=5, floor should be -5.
   const floorY = exploded ? -Math.max(4, SPREAD_DISTANCE) : -4;
 
+  // Calculate center of the entire assembly to keep it centered
+  const centerOffset = useMemo(() => {
+    let minX = Infinity, minY = Infinity, minZ = Infinity;
+    let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
+
+    PIECES.forEach((piece, i) => {
+      const basePos = OFFSETS[step][i] as [number, number, number];
+      const piecePos = getExplodedPos(basePos, i); // [x, y, z]
+
+      piece.boxes.forEach(box => {
+        // box.position is relative to piece origin
+        // box.args is [w, h, d]
+        const absoluteCenter = [
+          piecePos[0] + box.position[0],
+          piecePos[1] + box.position[1],
+          piecePos[2] + box.position[2]
+        ];
+        const halfSize = [box.args[0] / 2, box.args[1] / 2, box.args[2] / 2];
+
+        minX = Math.min(minX, absoluteCenter[0] - halfSize[0]);
+        maxX = Math.max(maxX, absoluteCenter[0] + halfSize[0]);
+
+        minY = Math.min(minY, absoluteCenter[1] - halfSize[1]);
+        maxY = Math.max(maxY, absoluteCenter[1] + halfSize[1]);
+
+        minZ = Math.min(minZ, absoluteCenter[2] - halfSize[2]);
+        maxZ = Math.max(maxZ, absoluteCenter[2] + halfSize[2]);
+      });
+    });
+
+    const centerX = (minX + maxX) / 2;
+    const centerY = (minY + maxY) / 2;
+    const centerZ = (minZ + maxZ) / 2;
+
+    return [-centerX, -centerY, -centerZ] as [number, number, number];
+  }, [step, exploded]);
+
   return (
     <div className="flex flex-col items-center gap-8 w-full">
       <div className="w-full h-[600px] bg-gray-900 rounded-3xl overflow-hidden shadow-2xl border border-gray-700 relative">
@@ -197,7 +234,11 @@ export default function TurkeyDissection() {
           <directionalLight position={[-10, 10, -10]} intensity={0.5} />
           <Environment preset="city" />
 
-          <group position={[-14, 0, -6]}> {/* Center roughly */}
+          {/* Animate centering to smooth out jumps */}
+          <motion.group
+            animate={{ x: centerOffset[0], y: centerOffset[1], z: centerOffset[2] }}
+            transition={{ type: "spring", stiffness: 30, damping: 15 }}
+          >
             {PIECES.map((piece, index) => {
               const pos = OFFSETS[step][index] as [number, number, number];
               const displayPos = getExplodedPos(pos, index);
@@ -210,8 +251,7 @@ export default function TurkeyDissection() {
                 />
               );
             })}
-            {/* Outline box for current overall shape bounds if desired */}
-          </group>
+          </motion.group>
 
           <ContactShadows position={[0, floorY - 0.1, 0]} opacity={0.5} scale={50} blur={2} far={4.5} />
           <gridHelper args={[60, 60, 0x444444, 0x222222]} position={[0, floorY, 0]} />

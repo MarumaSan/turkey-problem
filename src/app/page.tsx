@@ -114,7 +114,7 @@ export default function Home() {
       <section className="bg-gradient-to-br from-gray-900 to-gray-800 p-8 rounded-3xl border border-gray-700 space-y-6 shadow-xl">
         <h2 className="text-2xl font-bold text-white flex items-center gap-3">
           <CheckCircle2 className="text-green-500" />
-          คำถามชวนคิดต่อ (Food for Thought)
+          คำถามชวนคิดต่อ
         </h2>
         <div className="space-y-4">
           <p className="text-gray-300">

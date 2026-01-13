@@ -148,18 +148,8 @@ export default function TurkeyDissection() {
     return [basePos[0] + xDir * SPREAD_DISTANCE, basePos[1] + yDir * SPREAD_DISTANCE, basePos[2]];
   };
 
-  // Dynamic floor calculation
-  // Lowest point in animation is -4 (Step 1/2 from pieces 3/4)
-  // When exploded: Pieces 0/1 (Base Y 0) move down by SPREAD_DISTANCE -> -SPREAD_DISTANCE
-  // So min Y is Math.min(-4, -SPREAD_DISTANCE) roughly? 
-  // Actually Piece 3/4 move UP when exploded (yDir=1). So they go from -4 to -4+5 = 1.
-  // So the new lowest point is effectively -SPREAD_DISTANCE (from Piece 0/1 moving 0 -> -5).
-  // So we just need floor at min(-4, -SPREAD_DISTANCE).
-  // With SPREAD=5, floor should be -5.
-  const floorY = exploded ? -Math.max(4, SPREAD_DISTANCE) : -4;
-
-  // Calculate center of the entire assembly to keep it centered
-  const centerOffset = useMemo(() => {
+  // Calculate center and bounds of the entire assembly
+  const { centerOffset, floorY } = useMemo(() => {
     let minX = Infinity, minY = Infinity, minZ = Infinity;
     let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
 
@@ -192,7 +182,15 @@ export default function TurkeyDissection() {
     const centerY = (minY + maxY) / 2;
     const centerZ = (minZ + maxZ) / 2;
 
-    return [-centerX, -centerY, -centerZ] as [number, number, number];
+    const height = maxY - minY;
+    // The bottom of the model in World Space (after centering) is -Height/2
+    // Because we shift the center to 0. So Top is +H/2, Bottom is -H/2.
+    const calculatedFloorY = -height / 2;
+
+    return {
+      centerOffset: [-centerX, -centerY, -centerZ] as [number, number, number],
+      floorY: calculatedFloorY
+    };
   }, [step, exploded]);
 
   return (
@@ -253,8 +251,11 @@ export default function TurkeyDissection() {
             })}
           </motion.group>
 
-          <ContactShadows position={[0, floorY - 0.1, 0]} opacity={0.5} scale={50} blur={2} far={4.5} />
-          <gridHelper args={[60, 60, 0x444444, 0x222222]} position={[0, floorY, 0]} />
+          {/* Floor moves to match the bottom of the centered model */}
+          <motion.group animate={{ y: floorY }} transition={{ type: "spring", stiffness: 30, damping: 15 }}>
+            <ContactShadows position={[0, -0.1, 0]} opacity={0.5} scale={50} blur={2} far={4.5} />
+            <gridHelper args={[60, 60, 0x444444, 0x222222]} />
+          </motion.group>
         </Canvas>
       </div>
 

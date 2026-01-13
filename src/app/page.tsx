@@ -77,7 +77,7 @@ export default function Home() {
       <section className="bg-gray-900/50 p-8 rounded-3xl border border-gray-800 space-y-6">
         <h2 className="text-2xl font-bold flex items-center gap-3">
           <ArrowRight className="text-purple-500" />
-          คำถามที่ 2: ครื่องยัดไส้ไก่และพื้นที่ส่วนช่องท้องของไก่มีขนาดเป็นเท่าไรได้อีกบ้าง ที่จะทำให้ชายคนนี้สามารถทำเหตุการณ์ในลักษณะนี้ได้
+          คำถามที่ 2: เครื่องยัดไส้ไก่และพื้นที่ส่วนช่องท้องของไก่มีขนาดเป็นเท่าไรได้อีกบ้าง ที่จะทำให้ชายคนนี้สามารถทำเหตุการณ์ในลักษณะนี้ได้
         </h2>
         <div className="text-gray-300 space-y-4">
           <p>
@@ -113,39 +113,69 @@ export default function Home() {
       <section className="bg-gradient-to-br from-gray-900 to-gray-800 p-8 rounded-3xl border border-gray-700 space-y-6 shadow-xl">
         <h2 className="text-2xl font-bold text-white flex items-center gap-3">
           <CheckCircle2 className="text-green-500" />
-          แนวทางการศึกษาต่อ (Further Exploration)
+          สิ่งที่น่าสนใจศึกษาต่อ (Further Exploration)
         </h2>
         <div className="text-gray-300 space-y-4 leading-relaxed">
           <p>
-            ปัญหาการตัดแบ่งรูปทรง (Dissection Problems) เป็นหัวข้อที่น่าสนใจในคณิตศาสตร์ นี่คือแนวทางที่คุณสามารถศึกษาต่อได้:
+            ถ้าคุณชอบปริศนาการตัดแบ่งรูปทรงแบบนี้ ยังมีเรื่องน่ารู้อีกมากมายในโลกคณิตศาสตร์ ลองคลิกดูหัวข้อเหล่านี้ได้เลย:
           </p>
-          <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <li className="bg-gray-800/50 p-4 rounded-xl border border-white/5 hover:border-orange-500/30 transition-colors">
-              <h3 className="font-bold text-orange-400 mb-2">Hilbert's Third Problem</h3>
-              <p className="text-sm">
-                เป็นคำถามว่า "รูปทรงหลายเหลี่ยมสองรูปที่มีปริมาตรเท่ากัน จะสามารถตัดแบ่งให้เป็นชิ้นส่วนที่เหมือนกันได้เสมอหรือไม่?"
-                (คำตอบคือ <strong>ไม่เสมอไป</strong> ขึ้นอยู่กับค่า Dehn Invariant)
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <a
+              href="https://en.wikipedia.org/wiki/Hilbert%27s_third_problem"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-gray-800/50 p-4 rounded-xl border border-white/5 hover:border-orange-500/30 transition-all hover:bg-gray-800 hover:scale-[1.02] cursor-pointer group"
+            >
+              <h3 className="font-bold text-orange-400 mb-2 group-hover:text-orange-300 flex items-center gap-2">
+                Hilbert's Third Problem <ArrowRight size={16} />
+              </h3>
+              <p className="text-sm text-gray-400 group-hover:text-gray-300">
+                "รูปทรงที่มีปริมาตรเท่ากัน จะตัดมาประกอบเป็นอีกรูปได้เสมอไหม?" (คำตอบคือ ไม่เสมอไป!)
               </p>
-            </li>
-            <li className="bg-gray-800/50 p-4 rounded-xl border border-white/5 hover:border-blue-500/30 transition-colors">
-              <h3 className="font-bold text-blue-400 mb-2">Haberdasher's Puzzle</h3>
-              <p className="text-sm">
-                ปริศนาคลาสสิกโดย Henry Dudeney: การตัดรูปสามเหลี่ยมด้านเท่าออกเป็น 4 ชิ้น แล้วนำมาประกอบใหม่เป็นรูปสี่เหลี่ยมจัตุรัส
+            </a>
+
+            <a
+              href="https://mathworld.wolfram.com/HaberdashersProblem.html"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-gray-800/50 p-4 rounded-xl border border-white/5 hover:border-blue-500/30 transition-all hover:bg-gray-800 hover:scale-[1.02] cursor-pointer group"
+            >
+              <h3 className="font-bold text-blue-400 mb-2 group-hover:text-blue-300 flex items-center gap-2">
+                Haberdasher's Puzzle <ArrowRight size={16} />
+              </h3>
+              <p className="text-sm text-gray-400 group-hover:text-gray-300">
+                ปริศนาชื่อดัง: เปลี่ยนสามเหลี่ยมให้เป็นสี่เหลี่ยมจัตุรัสด้วยการตัดเพียง 4 ชิ้น (สวยงามมาก)
               </p>
-            </li>
-            <li className="bg-gray-800/50 p-4 rounded-xl border border-white/5 hover:border-purple-500/30 transition-colors">
-              <h3 className="font-bold text-purple-400 mb-2">Minimal Cuts</h3>
-              <p className="text-sm">
-                การค้นหาจำนวนครั้งในการตัดที่ "น้อยที่สุด" สำหรับรูปทรงต่างๆ เช่น การตัดลูกบาศก์เป็น Tetrahedron
+            </a>
+
+            <a
+              href="https://mathworld.wolfram.com/Dissection.html"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-gray-800/50 p-4 rounded-xl border border-white/5 hover:border-purple-500/30 transition-all hover:bg-gray-800 hover:scale-[1.02] cursor-pointer group"
+            >
+              <h3 className="font-bold text-purple-400 mb-2 group-hover:text-purple-300 flex items-center gap-2">
+                Minimal Cuts <ArrowRight size={16} />
+              </h3>
+              <p className="text-sm text-gray-400 group-hover:text-gray-300">
+                การท้าทายหาจำนวนครั้งที่ "ตัดน้อยที่สุด" เพื่อเปลี่ยนรูปทรงหนึ่งไปเป็นอีกรูปทรงหนึ่ง
               </p>
-            </li>
-            <li className="bg-gray-800/50 p-4 rounded-xl border border-white/5 hover:border-green-500/30 transition-colors">
-              <h3 className="font-bold text-green-400 mb-2">Hinged Dissections</h3>
-              <p className="text-sm">
-                การตัดแบ่งโดยที่ชิ้นส่วนต่างๆ ยังคงเชื่อมต่อกันด้วยจุดหมุน (Hinges) และสามารถพับเปลี่ยนรูปทรงได้
+            </a>
+
+            <a
+              href="http://erikdemaine.org/hinged/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-gray-800/50 p-4 rounded-xl border border-white/5 hover:border-green-500/30 transition-all hover:bg-gray-800 hover:scale-[1.02] cursor-pointer group"
+            >
+              <h3 className="font-bold text-green-400 mb-2 group-hover:text-green-300 flex items-center gap-2">
+                Hinged Dissections <ArrowRight size={16} />
+              </h3>
+              <p className="text-sm text-gray-400 group-hover:text-gray-300">
+                การตัดแบ่งโดยที่ชิ้นส่วนยัง "ติดกัน" เหมือนมีบานพับ พับไปมาเพื่อเปลี่ยนรูปร่างได้
               </p>
-            </li>
-          </ul>
+            </a>
+          </div>
         </div>
       </section>
 

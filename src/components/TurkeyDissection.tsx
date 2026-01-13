@@ -129,6 +129,8 @@ const mergeBoxesToGeometry = (boxes: { args: [number, number, number]; position:
 
   return mergedGeometry;
 };
+const SPREAD_DISTANCE = 5;
+
 export default function TurkeyDissection() {
   const [step, setStep] = useState(0);
   const [exploded, setExploded] = useState(false);
@@ -140,12 +142,21 @@ export default function TurkeyDissection() {
   // Adjust visualization based on explode state (spread pieces out)
   const getExplodedPos = (basePos: number[], index: number) => {
     if (!exploded) return basePos;
-    const spread = 5; // Spread distance increased from 2 to 5
     // Simple spread logic away from center
     const xDir = index % 2 === 0 ? -1 : 1;
     const yDir = index < 2 ? -1 : 1;
-    return [basePos[0] + xDir * spread, basePos[1] + yDir * spread, basePos[2]];
+    return [basePos[0] + xDir * SPREAD_DISTANCE, basePos[1] + yDir * SPREAD_DISTANCE, basePos[2]];
   };
+
+  // Dynamic floor calculation
+  // Lowest point in animation is -4 (Step 1/2 from pieces 3/4)
+  // When exploded: Pieces 0/1 (Base Y 0) move down by SPREAD_DISTANCE -> -SPREAD_DISTANCE
+  // So min Y is Math.min(-4, -SPREAD_DISTANCE) roughly? 
+  // Actually Piece 3/4 move UP when exploded (yDir=1). So they go from -4 to -4+5 = 1.
+  // So the new lowest point is effectively -SPREAD_DISTANCE (from Piece 0/1 moving 0 -> -5).
+  // So we just need floor at min(-4, -SPREAD_DISTANCE).
+  // With SPREAD=5, floor should be -5.
+  const floorY = exploded ? -Math.max(4, SPREAD_DISTANCE) : -4;
 
   return (
     <div className="flex flex-col items-center gap-8 w-full">
@@ -202,8 +213,8 @@ export default function TurkeyDissection() {
             {/* Outline box for current overall shape bounds if desired */}
           </group>
 
-          <ContactShadows position={[0, -4.1, 0]} opacity={0.5} scale={50} blur={2} far={4.5} />
-          <gridHelper args={[60, 60, 0x444444, 0x222222]} position={[0, -4, 0]} />
+          <ContactShadows position={[0, floorY - 0.1, 0]} opacity={0.5} scale={50} blur={2} far={4.5} />
+          <gridHelper args={[60, 60, 0x444444, 0x222222]} position={[0, floorY, 0]} />
         </Canvas>
       </div>
 

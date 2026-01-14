@@ -147,7 +147,7 @@ export default function TurkeyGeneralization() {
             piece.boxes.forEach(box => {
                 const absoluteCenter = [
                     pos[0] + box.position[0],
-                    pos[1] + pos[1] + box.position[1], // Corrected: pos[1] + box.position[1]
+                    pos[1] + box.position[1],
                     pos[2] + box.position[2]
                 ];
                 const halfSize = [box.args[0] / 2, box.args[1] / 2, box.args[2] / 2];

@@ -1,14 +1,48 @@
-@import "tailwindcss";
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
 
 :root {
-  /* KFC Palette */
   --background: #ffffff;
   --foreground: #1c1c1c;
   --kfc-red: #E4002B;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
+/* Iconic KFC Bucket Pattern */
+.kfc-stripes {
+  background-image: repeating-linear-gradient(90deg,
+      var(--kfc-red) 0px,
+      var(--kfc-red) 20px,
+      #ffffff 20px,
+      #ffffff 40px);
+}
+
+/* Subtle diagonals for softer sections */
+.kfc-diagonals {
+  background-image: repeating-linear-gradient(45deg,
+      rgba(228, 0, 43, 0.03) 0px,
+      rgba(228, 0, 43, 0.03) 10px,
+      transparent 10px,
+      transparent 20px);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #ffffff;
+    /* Force Light Mode for KFC Theme */
+    --foreground: #1c1c1c;
+  }
+}
+
 body {
-  color: var(--foreground);
   background: var(--background);
+  color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }

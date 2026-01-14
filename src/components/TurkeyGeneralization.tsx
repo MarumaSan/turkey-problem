@@ -294,6 +294,83 @@ export default function TurkeyGeneralization() {
                     </motion.group>
                 </Canvas>
             </div>
+
+
+            {/* Expanded Formula Explanation */}
+            <div className="w-full max-w-4xl bg-gray-50 rounded-3xl p-8 border border-gray-200 mt-4 space-y-8">
+                <div className="flex items-center gap-3 mb-6">
+                    <div className="w-10 h-10 bg-[var(--kfc-red)] rounded-full flex items-center justify-center text-white font-bold text-xl">
+                        <span className="italic">f</span>(x)
+                    </div>
+                    <h3 className="text-2xl font-black uppercase italic text-black">ที่มาของสูตร (Mathematical Derivation)</h3>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-12">
+                    <div className="space-y-6">
+                        <h4 className="border-b-2 border-black/10 pb-2 text-lg font-bold text-[var(--kfc-red)] uppercase tracking-wide">
+                            1. กำหนดตัวแปร (Variables)
+                        </h4>
+                        <ul className="space-y-4 text-gray-700 font-medium">
+                            <li className="flex items-start gap-3">
+                                <span className="bg-black/5 px-2 py-0.5 rounded font-mono text-black font-bold whitespace-nowrap">k</span>
+                                <span>คือ ค่าคงที่ที่กำหนดขนาดของชิ้นส่วน (Scaling Factor)</span>
+                            </li>
+                            <li className="flex items-start gap-3">
+                                <span className="bg-orange-100 px-2 py-0.5 rounded font-mono text-orange-700 font-bold whitespace-nowrap">L = 3k</span>
+                                <span>ความยาวด้านของลูกบาศก์เดิม (เกิดจาก 3 ส่วนย่อย)</span>
+                            </li>
+                            <li className="flex items-start gap-3">
+                                <span className="bg-blue-100 px-2 py-0.5 rounded font-mono text-blue-700 font-bold whitespace-nowrap">A = 2k</span>
+                                <span>ความกว้าง/สูง ของหน้าตัดใหม่ (เกิดจาก 2 ส่วนย่อย)</span>
+                            </li>
+                            <li className="flex items-start gap-3">
+                                <span className="bg-red-100 px-2 py-0.5 rounded font-mono text-[var(--kfc-red)] font-bold whitespace-nowrap">B = 6.75k</span>
+                                <span>ความยาวของแท่งสี่เหลี่ยมใหม่ (เกิดจากการคำนวณ)</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div className="space-y-6">
+                        <h4 className="border-b-2 border-black/10 pb-2 text-lg font-bold text-[var(--kfc-red)] uppercase tracking-wide">
+                            2. การพิสูจน์ (Proof)
+                        </h4>
+                        <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm font-mono text-gray-800 space-y-3">
+                            <p className="text-sm text-gray-500 font-sans mb-2">จากกฎการอนุรักษ์ปริมาตร:</p>
+                            <div className="flex justify-between items-center border-b border-gray-100 pb-2">
+                                <span>Volume<sub className="text-xs">cube</sub></span>
+                                <span>=</span>
+                                <span>Volume<sub className="text-xs">prism</sub></span>
+                            </div>
+                            <div className="flex justify-between items-center text-lg font-bold">
+                                <span>L³</span>
+                                <span className="text-[var(--kfc-red)]">=</span>
+                                <span>A² × B</span>
+                            </div>
+                            <div className="flex justify-between items-center text-gray-600">
+                                <span>(3k)³</span>
+                                <span>=</span>
+                                <span>(2k)² × B</span>
+                            </div>
+                            <div className="flex justify-between items-center text-gray-600">
+                                <span>27k³</span>
+                                <span>=</span>
+                                <span>4k² × B</span>
+                            </div>
+                            <div className="pt-3 mt-3 border-t-2 border-[var(--kfc-red)] border-dashed flex justify-between items-center bg-red-50 -mx-6 px-6 py-2 -mb-6 rounded-b-xl">
+                                <span className="font-bold text-[var(--kfc-red)]">B</span>
+                                <span className="text-[var(--kfc-red)]">=</span>
+                                <span className="font-black text-xl text-[var(--kfc-red)]">6.75k</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="bg-black/5 p-4 rounded-xl text-center">
+                    <p className="text-gray-600 italic">
+                        "ดังนั้น เมื่อเราทราบค่า k ใดๆ เราจะสามารถคำนวณหาขนาดของกล่องที่เหมาะสมได้เสมอ"
+                    </p>
+                </div>
+            </div>
         </div>
     );
 }

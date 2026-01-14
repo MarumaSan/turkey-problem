@@ -122,47 +122,10 @@ export default function Home() {
           </p>
 
           <div className="grid grid-cols-1 gap-4">
-            {/* Question 1 */}
-            <details className="group bg-gray-800/50 p-4 rounded-xl border border-white/5 open:bg-gray-800 open:border-orange-500/30 transition-all cursor-pointer">
-              <summary className="font-bold text-orange-400 text-lg list-none flex items-center justify-between">
-                1. พื้นที่ผิวของวัตถุเปลี่ยนไปหรือไม่ หลังจากการตัดและประกอบใหม่?
-                <span className="text-gray-500 group-open:rotate-180 transition-transform">▼</span>
-              </summary>
-              <div className="mt-4 text-gray-300 space-y-2 pl-4 border-l-2 border-orange-500/30 animate-in fade-in slide-in-from-top-2">
-                <p><strong>คำตอบ: เปลี่ยนครับ (เพิ่มขึ้น)</strong></p>
-                <p>
-                  ลองคำนวณดูนะ:<br />
-                  - <strong>ลูกบาศก์เดิม (12³):</strong> มี 6 ด้าน x (12x12) = <strong>864 ตร.ซม.</strong><br />
-                  - <strong>ทรงสี่เหลี่ยมใหม่ (8x8x27):</strong> (8x8 x 2 ด้าน) + (8x27 x 4 ด้าน) = 128 + 864 = <strong>992 ตร.ซม.</strong>
-                </p>
-                <p className="text-sm text-gray-400">
-                  *พื้นที่ผิวที่เพิ่มขึ้น เกิดจาก "หน้าตัด" ที่เราหั่นเนื้อไก่งวงออกมาสัมผัสอากาศนั่นเอง
-                </p>
-              </div>
-            </details>
-
-            {/* Question 2 */}
-            <details className="group bg-gray-800/50 p-4 rounded-xl border border-white/5 open:bg-gray-800 open:border-blue-500/30 transition-all cursor-pointer">
-              <summary className="font-bold text-blue-400 text-lg list-none flex items-center justify-between">
-                2. ถ้าช่องท้องไก่งวงแคบลงเป็น 6x6 ซม. แต่ยาวขึ้นเป็น 48 ซม. จะใช้วิธีเดิมได้ไหม?
-                <span className="text-gray-500 group-open:rotate-180 transition-transform">▼</span>
-              </summary>
-              <div className="mt-4 text-gray-300 space-y-2 pl-4 border-l-2 border-blue-500/30 animate-in fade-in slide-in-from-top-2">
-                <p><strong>คำตอบ: ใช้วิธีตัด 4 ชิ้นแบบเดิมไม่ได้ครับ</strong></p>
-                <p>
-                  ปริมาตรยังคงเท่ากัน (6x6x48 = 1728) แต่ลองเช็คสัดส่วนด้านดู:<br />
-                  ด้านลูกบาศก์ (12) : ด้านฐานใหม่ (6) = <strong>2 : 1</strong>
-                </p>
-                <p>
-                  วิธีตัดแบบขั้นบันไดที่เราใช้ ต้องการอัตราส่วน <strong>3 : 2</strong> ดังนั้นถ้าอัตราส่วนเปลี่ยน รูปร่างของชิ้นส่วนที่ตัดต้องเปลี่ยนไป อาจต้องตัดหลายขั้นกว่าเดิมหรือใช้วิธีอื่น
-                </p>
-              </div>
-            </details>
-
-            {/* Question 3 */}
+            {/* Question */}
             <details className="group bg-gray-800/50 p-4 rounded-xl border border-white/5 open:bg-gray-800 open:border-purple-500/30 transition-all cursor-pointer">
               <summary className="font-bold text-purple-400 text-lg list-none flex items-center justify-between">
-                3. ทำไมต้องตัดเป็น 4 ชิ้น? ตัดน้อยกว่านี้ได้ไหม?
+                ทำไมต้องตัดเป็น 4 ชิ้น? ตัดน้อยกว่านี้ได้ไหม?
                 <span className="text-gray-500 group-open:rotate-180 transition-transform">▼</span>
               </summary>
               <div className="mt-4 text-gray-300 space-y-2 pl-4 border-l-2 border-purple-500/30 animate-in fade-in slide-in-from-top-2">

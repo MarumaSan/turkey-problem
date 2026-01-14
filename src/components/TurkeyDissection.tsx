@@ -119,11 +119,26 @@ const COLORS_STEP_0 = '#fb923c'; // Orange-400 (Uniform)
 const COLORS_STEP_1 = ['#fb923c', '#fb923c', '#4ade80', '#4ade80']; // Orange vs Green (Groups)
 // Step 2 uses original COLORS array: Red/Green/Blue/Yellow
 
+import confetti from 'canvas-confetti';
+
 export default function TurkeyDissection() {
   const [step, setStep] = useState(0);
   const [exploded, setExploded] = useState(false);
 
-  const nextStep = () => setStep((s) => Math.min(s + 1, 2));
+  const nextStep = () => {
+    setStep((s) => {
+      const next = Math.min(s + 1, 2);
+      if (next === 2 && s !== 2) {
+        confetti({
+          particleCount: 150,
+          spread: 70,
+          origin: { y: 0.6 },
+          colors: ['#E4002B', '#ffffff', '#fb923c'] // KFC Colors + Orange
+        });
+      }
+      return next;
+    });
+  };
   const prevStep = () => setStep((s) => Math.max(s - 1, 0));
   const reset = () => { setStep(0); setExploded(false); };
 

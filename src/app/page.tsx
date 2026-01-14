@@ -4,6 +4,14 @@ import React from 'react';
 import TurkeyDissection from '@/components/TurkeyDissection';
 import TurkeyGeneralization from '@/components/TurkeyGeneralization';
 import { CheckCircle2, Ruler, Scissors } from 'lucide-react';
+import { motion } from 'framer-motion';
+
+
+
+const revealVariants = {
+  hidden: { opacity: 0, y: 50 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } }
+};
 
 export default function Home() {
   return (
@@ -33,7 +41,12 @@ export default function Home() {
         <section id="intro" className="min-h-[60vh] flex flex-col items-center justify-center p-8 md:p-12 relative overflow-hidden bg-white">
           <div className="absolute inset-0 kfc-diagonals opacity-50 pointer-events-none"></div>
 
-          <div className="max-w-4xl w-full text-center relative z-10 space-y-6">
+          <motion.div
+            className="max-w-4xl w-full text-center relative z-10 space-y-6"
+            initial="hidden"
+            animate="visible"
+            variants={revealVariants}
+          >
             <div className="inline-block px-4 py-1 bg-red-100 text-[var(--kfc-red)] font-bold text-sm rounded-full mb-4 border border-red-200">
               MATHEMATICS SPECIAL
             </div>
@@ -84,11 +97,17 @@ export default function Home() {
                 </div>
               </div>
             </div>
-          </div>
+          </motion.div>
         </section>
 
         {/* Challenge Section (Diagram) */}
-        <section className="py-16 bg-gray-50 border-t border-gray-200">
+        <motion.section
+          className="py-16 bg-gray-50 border-t border-gray-200"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.2 }}
+          variants={revealVariants}
+        >
           <div className="container mx-auto px-4 text-center">
             <h2 className="text-3xl font-black text-black uppercase italic mb-8">The Challenge Diagram</h2>
             <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto text-left">
@@ -132,10 +151,17 @@ export default function Home() {
               </div>
             </div>
           </div>
-        </section>
+        </motion.section>
 
         {/* Simulation Section */}
-        <section id="simulation" className="scroll-mt-24 py-16 container mx-auto px-4 max-w-6xl">
+        <motion.section
+          id="simulation"
+          className="scroll-mt-24 py-16 container mx-auto px-4 max-w-6xl"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.1 }}
+          variants={revealVariants}
+        >
           <div className="flex items-center gap-4 mb-12">
             <div className="h-2 flex-1 kfc-stripes rounded-full opacity-80"></div>
             <h2 className="text-4xl font-black text-black uppercase italic tracking-tighter text-center px-4">
@@ -161,7 +187,7 @@ export default function Home() {
               <TurkeyGeneralization />
             </div>
           </div>
-        </section>
+        </motion.section>
 
       </main>
 

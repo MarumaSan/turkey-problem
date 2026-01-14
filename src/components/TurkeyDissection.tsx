@@ -1,9 +1,7 @@
-'use client';
-
 import React, { useState, useMemo } from 'react';
 import * as THREE from 'three';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Environment, ContactShadows, Edges } from '@react-three/drei';
+import { OrbitControls, Environment, ContactShadows, Edges, Text, Line } from '@react-three/drei';
 import { motion } from 'framer-motion-3d';
 import { ADDITION, Brush, Evaluator } from 'three-bvh-csg';
 import { ArrowLeft, ArrowRight, RotateCcw } from 'lucide-react';
@@ -131,6 +129,35 @@ const mergeBoxesToGeometry = (boxes: { args: [number, number, number]; position:
 };
 const SPREAD_DISTANCE = 5;
 
+function DimensionLine({ start, end, label, color = "white", offset = [0, 0, 0] }: { start: [number, number, number], end: [number, number, number], label: string, color?: string, offset?: [number, number, number] }) {
+  const p1 = new THREE.Vector3(...start).add(new THREE.Vector3(...offset));
+  const p2 = new THREE.Vector3(...end).add(new THREE.Vector3(...offset));
+  const mid = p1.clone().add(p2).multiplyScalar(0.5);
+
+  return (
+    <group>
+      {/* Main Line */}
+      <Line points={[p1, p2]} color={color} opacity={0.5} transparent lineWidth={1} dashed dashScale={2} />
+
+      {/* Ticks (endpoints) */}
+      <mesh position={p1}><sphereGeometry args={[0.2]} /><meshBasicMaterial color={color} /></mesh>
+      <mesh position={p2}><sphereGeometry args={[0.2]} /><meshBasicMaterial color={color} /></mesh>
+
+      <Text
+        position={[mid.x, mid.y + 0.5, mid.z]}
+        color={color}
+        fontSize={1.5}
+        anchorX="center"
+        anchorY="bottom"
+        outlineWidth={0.1}
+        outlineColor="#000000"
+      >
+        {label}
+      </Text>
+    </group>
+  );
+}
+
 export default function TurkeyDissection() {
   const [step, setStep] = useState(0);
   const [exploded, setExploded] = useState(false);
@@ -149,7 +176,7 @@ export default function TurkeyDissection() {
   };
 
   // Calculate center and bounds of the entire assembly
-  const { centerOffset, floorY } = useMemo(() => {
+  const { centerOffset, floorY, bounds } = useMemo(() => {
     let minX = Infinity, minY = Infinity, minZ = Infinity;
     let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
 
@@ -191,7 +218,8 @@ export default function TurkeyDissection() {
 
     return {
       centerOffset: [-centerX, -centerY, -centerZ] as [number, number, number],
-      floorY: calculatedFloorY
+      floorY: calculatedFloorY,
+      bounds: { minX, maxX, minY, maxY, minZ, maxZ }
     };
   }, [step, exploded]);
 
@@ -251,6 +279,36 @@ export default function TurkeyDissection() {
                 />
               );
             })}
+          </motion.group>
+
+          {/* Dimension Lines */}
+          <motion.group
+            animate={{ x: centerOffset[0], y: centerOffset[1], z: centerOffset[2] }}
+            transition={{ type: "spring", stiffness: 30, damping: 15 }}
+          >
+            {/* Width (X) */}
+            <DimensionLine
+              start={[bounds.minX, bounds.minY - 2, bounds.maxZ + 2]}
+              end={[bounds.maxX, bounds.minY - 2, bounds.maxZ + 2]}
+              label={`${(bounds.maxX - bounds.minX).toFixed(1)}`}
+              color="#FAA300"
+            />
+
+            {/* Height (Y) */}
+            <DimensionLine
+              start={[bounds.minX - 2, bounds.minY, bounds.maxZ + 2]}
+              end={[bounds.minX - 2, bounds.maxY, bounds.maxZ + 2]}
+              label={`${(bounds.maxY - bounds.minY).toFixed(1)}`}
+              color="#FAA300"
+            />
+
+            {/* Depth (Z) */}
+            <DimensionLine
+              start={[bounds.maxX + 2, bounds.minY - 2, bounds.minZ]}
+              end={[bounds.maxX + 2, bounds.minY - 2, bounds.maxZ]}
+              label={`${(bounds.maxZ - bounds.minZ).toFixed(1)}`}
+              color="#FAA300"
+            />
           </motion.group>
 
           {/* Floor moves to match the bottom of the centered model */}

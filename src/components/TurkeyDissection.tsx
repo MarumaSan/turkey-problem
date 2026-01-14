@@ -127,7 +127,7 @@ const mergeBoxesToGeometry = (boxes: { args: [number, number, number]; position:
 
   return mergedGeometry;
 };
-const SPREAD_DISTANCE = 5;
+const SPREAD_DISTANCE = 8;
 
 function DimensionLine({ start, end, label, color = "white", offset = [0, 0, 0] }: { start: [number, number, number], end: [number, number, number], label: string, color?: string, offset?: [number, number, number] }) {
   const p1 = new THREE.Vector3(...start).add(new THREE.Vector3(...offset));
@@ -158,6 +158,10 @@ function DimensionLine({ start, end, label, color = "white", offset = [0, 0, 0] 
   );
 }
 
+const COLORS_STEP_0 = '#fb923c'; // Orange-400 (Uniform)
+const COLORS_STEP_1 = ['#fb923c', '#fb923c', '#4ade80', '#4ade80']; // Orange vs Green (Groups)
+// Step 2 uses original COLORS array: Red/Green/Blue/Yellow
+
 export default function TurkeyDissection() {
   const [step, setStep] = useState(0);
   const [exploded, setExploded] = useState(false);
@@ -169,10 +173,32 @@ export default function TurkeyDissection() {
   // Adjust visualization based on explode state (spread pieces out)
   const getExplodedPos = (basePos: number[], index: number) => {
     if (!exploded) return basePos;
-    // Simple spread logic away from center
+
+    // Step 0: No explosion (Single Piece)
+    if (step === 0) return basePos;
+
+    // Step 1: Explode into 2 Groups (Pieces 0,1 vs Pieces 2,3)
+    if (step === 1) {
+      // Group A (0,1) moves Left/Back? Group B (2,3) moves Right/Front?
+      // Based on cut: Pieces 2/3 moved (6, -4, 0).
+      // So let's separate them along the X axis (or dragging vector).
+      const isGroupA = index < 2;
+      // Move Group A slightly Left (-X), Group B slightly Right (+X)
+      const dir = isGroupA ? -1 : 1;
+      return [basePos[0] + dir * SPREAD_DISTANCE, basePos[1], basePos[2]];
+    }
+
+    // Step 2: Explode all 4 pieces
     const xDir = index % 2 === 0 ? -1 : 1;
     const yDir = index < 2 ? -1 : 1;
     return [basePos[0] + xDir * SPREAD_DISTANCE, basePos[1] + yDir * SPREAD_DISTANCE, basePos[2]];
+  };
+
+  // Determine color based on step
+  const getPieceColor = (index: number) => {
+    if (step === 0) return COLORS_STEP_0;
+    if (step === 1) return COLORS_STEP_1[index];
+    return COLORS[index];
   };
 
   // Calculate center and bounds of the entire assembly
@@ -274,7 +300,7 @@ export default function TurkeyDissection() {
                 <Piece
                   key={piece.id}
                   boxes={piece.boxes}
-                  color={COLORS[index]}
+                  color={getPieceColor(index)}
                   position={displayPos as [number, number, number]}
                 />
               );
@@ -357,15 +383,15 @@ function Piece({ boxes, color, position }: { boxes: { args: [number, number, num
       {boxes.map((box, i) => (
         <mesh key={i} position={box.position} castShadow receiveShadow>
           <boxGeometry args={box.args} />
-          <meshStandardMaterial
-            color={color}
+          {/* @ts-ignore */}
+          <motion.meshStandardMaterial
+            animate={{ color: color }}
             metalness={0.2}
             roughness={0.7}
             emissive={color}
             emissiveIntensity={0.1}
           />
-          {/* Edges */}
-          <Edges color="black" threshold={15} />
+          {/* Edges removed as requested */}
         </mesh>
       ))}
     </motion.group>

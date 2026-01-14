@@ -36,7 +36,6 @@ function Piece({ boxes, color, position }: { boxes: { args: [number, number, num
                         emissive={color}
                         emissiveIntensity={0.1}
                     />
-                    <Edges color="black" threshold={15} />
                 </mesh>
             ))}
         </motion.group>

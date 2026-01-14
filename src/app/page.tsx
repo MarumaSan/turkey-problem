@@ -3,8 +3,8 @@
 import React from 'react';
 import TurkeyDissection from '@/components/TurkeyDissection';
 import TurkeyGeneralization from '@/components/TurkeyGeneralization';
-import { CheckCircle2, Ruler, Scissors } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { CheckCircle2, Ruler, Scissors, Maximize2, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 
 
@@ -14,6 +14,7 @@ const revealVariants = {
 };
 
 export default function Home() {
+  const [isExpanded, setIsExpanded] = React.useState(false);
   return (
     <div className="min-h-screen font-sans bg-white text-gray-900">
       {/* KFC Brand Header */}
@@ -111,9 +112,16 @@ export default function Home() {
           <div className="container mx-auto px-4 text-center">
             <h2 className="text-3xl font-black text-black uppercase italic mb-8">The Challenge Diagram</h2>
             <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto text-left">
-              {/* Visual Diagram */}
-              <div className="bg-white p-6 rounded-2xl shadow-lg border-2 border-transparent hover:border-[var(--kfc-red)] transition-all flex items-center justify-center">
-                <svg width="100%" height="auto" viewBox="0 0 400 200" className="max-w-md text-black drop-shadow-md">
+              {/* Visual Diagram - Click to Expand */}
+              <motion.div
+                layoutId="challenge-diagram"
+                onClick={() => setIsExpanded(true)}
+                className="cursor-zoom-in bg-white p-6 rounded-2xl shadow-lg border-2 border-transparent hover:border-[var(--kfc-red)] transition-all flex items-center justify-center relative group"
+              >
+                <div className="absolute top-4 right-4 text-gray-400 group-hover:text-[var(--kfc-red)]">
+                  <Maximize2 className="w-5 h-5" />
+                </div>
+                <svg width="100%" height="auto" viewBox="0 0 400 200" className="max-w-md text-black drop-shadow-md pointer-events-none">
                   <g transform="translate(50, 50)">
                     <path d="M0 40 L60 40 L60 100 L0 100 Z" fill="#fb923c" stroke="black" strokeWidth="2" />
                     <path d="M0 40 L30 10 L90 10 L60 40 Z" fill="#fdba74" stroke="black" strokeWidth="2" />
@@ -131,7 +139,7 @@ export default function Home() {
                     <text x="30" y="170" textAnchor="middle" fill="black" fontSize="14" fontWeight="bold">8x8x27</text>
                   </g>
                 </svg>
-              </div>
+              </motion.div>
 
               {/* Text Explanation */}
               <div className="space-y-6">
@@ -151,7 +159,58 @@ export default function Home() {
               </div>
             </div>
           </div>
+
         </motion.section>
+
+        {/* Expandable Overlay */}
+        <AnimatePresence>
+          {isExpanded && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsExpanded(false)}
+              className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm cursor-zoom-out"
+            >
+              <motion.div
+                layoutId="challenge-diagram"
+                className="bg-white p-8 rounded-3xl max-w-5xl w-full shadow-2xl relative"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="absolute top-6 right-6">
+                  <button
+                    onClick={() => setIsExpanded(false)}
+                    className="p-2 bg-gray-100 hover:bg-[var(--kfc-red)] hover:text-white rounded-full transition-colors"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
+                <h3 className="text-2xl font-black italic uppercase mb-8 text-center">Detailed Diagram</h3>
+                <div className="flex items-center justify-center py-8">
+                  <svg width="100%" height="auto" viewBox="0 0 400 200" className="max-w-3xl text-black">
+                    <g transform="translate(50, 50)">
+                      <path d="M0 40 L60 40 L60 100 L0 100 Z" fill="#fb923c" stroke="black" strokeWidth="2" />
+                      <path d="M0 40 L30 10 L90 10 L60 40 Z" fill="#fdba74" stroke="black" strokeWidth="2" />
+                      <path d="M60 40 L90 10 L90 70 L60 100 Z" fill="#f97316" stroke="black" strokeWidth="2" />
+                      <text x="45" y="130" textAnchor="middle" fill="black" fontSize="18" fontWeight="bold">12x12x12</text>
+                    </g>
+                    <g transform="translate(170, 90)">
+                      <path d="M0 0 L40 0 M30 -10 L40 0 L30 10" stroke="#E4002B" strokeWidth="4" fill="none" />
+                      <text x="20" y="-20" textAnchor="middle" fill="#E4002B" fontSize="16" fontWeight="bold">4 ชิ้น</text>
+                    </g>
+                    <g transform="translate(250, 20)">
+                      <path d="M0 40 L40 40 L40 150 L0 150 Z" fill="#E4002B" stroke="black" strokeWidth="2" />
+                      <path d="M0 40 L20 20 L60 20 L40 40 Z" fill="#ff4d4d" stroke="black" strokeWidth="2" />
+                      <path d="M40 40 L60 20 L60 130 L40 150 Z" fill="#b91c1c" stroke="black" strokeWidth="2" />
+                      <text x="30" y="170" textAnchor="middle" fill="black" fontSize="18" fontWeight="bold">8x8x27</text>
+                    </g>
+                  </svg>
+                </div>
+                <p className="text-center text-gray-500 mt-4">Click outside to close</p>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Simulation Section */}
         <motion.section
@@ -186,6 +245,44 @@ export default function Home() {
               </h3>
               <TurkeyGeneralization />
             </div>
+          </div>
+        </motion.section>
+
+        {/* Further Questions Section */}
+        <motion.section
+          className="py-16 bg-white border-t border-gray-200"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.2 }}
+          variants={revealVariants}
+        >
+          <div className="container mx-auto px-4 max-w-4xl text-center">
+
+            {/* Styled Header */}
+            <div className="flex items-center gap-4 mb-8">
+              <div className="h-2 flex-1 kfc-stripes rounded-full opacity-80"></div>
+              <h2 className="text-2xl md:text-4xl font-black text-black uppercase italic tracking-tighter text-center px-2">
+                The <span className="text-[var(--kfc-red)]">Questions</span>
+              </h2>
+              <div className="h-2 flex-1 kfc-stripes rounded-full opacity-80"></div>
+            </div>
+
+            <p className="text-gray-500 font-bold mb-8 uppercase tracking-widest text-sm">คำถามชวนคิดต่อ</p>
+
+            <details className="group bg-gray-50 p-6 rounded-2xl shadow-sm border border-gray-200 open:bg-white open:border-[var(--kfc-red)] transition-all cursor-pointer text-left">
+              <summary className="font-bold text-gray-900 hover:text-[var(--kfc-red)] text-lg list-none flex items-center justify-between outline-none">
+                ทำไมต้องตัดเป็น 4 ชิ้น? ตัดน้อยกว่านี้ได้ไหม?
+                <span className="text-gray-400 group-open:rotate-180 transition-transform">▼</span>
+              </summary>
+              <div className="mt-4 text-gray-600 space-y-3 animate-in fade-in slide-in-from-top-2 border-t border-gray-100 pt-4">
+                <p>
+                  <strong className="text-[var(--kfc-red)]">แนวคิด:</strong> สำหรับวิธี &quot;Slide Dissection&quot; (การเลื่อนชิ้นส่วน) เพื่อเปลี่ยนจากสัดส่วน 3 หน่วย (12) ไปเป็น 2 หน่วย (8) จำเป็นต้องมีอย่างน้อย <span className="font-bold text-black">4 ชิ้น</span> เพื่อสร้าง &quot;ขั้นบันได&quot; ที่สลับกันลงตัวพอดี
+                </p>
+                <p className="text-sm bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+                  ในทางทฤษฎี (Hilbert&#39;s Third Problem) อาจมีวิธีการตัดแบบอื่นที่ซับซ้อนกว่านี้ แต่ 4 ชิ้นถือเป็นจำนวนที่น้อยที่สุดและเรียบง่ายที่สุดสำหรับรูปทรงเรขาคณิตแบบนี้
+                </p>
+              </div>
+            </details>
           </div>
         </motion.section>
 

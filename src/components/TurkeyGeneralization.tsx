@@ -1,9 +1,12 @@
+```javascript
 import React, { useState, useMemo } from 'react';
 import * as THREE from 'three';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Environment, ContactShadows, Edges, Text, Line } from '@react-three/drei';
 import { motion } from 'framer-motion-3d';
-import { Box, LayoutTemplate } from 'lucide-react';
+import { Box, LayoutTemplate, SquareSplitVertical } from 'lucide-react';
+import { ADDITION, SUBTRACTION, INTERSECTION, Brush, Evaluator } from 'three-bvh-csg';
+import { mergeVertices } from 'three-stdlib';
 
 const COLORS = ['#ef4444', '#22c55e', '#3b82f6', '#eab308'];
 
@@ -19,16 +22,121 @@ const getBox = (xMin: number, xMax: number, yMin: number, yMax: number, zMin: nu
     return { args: [w, h, d] as [number, number, number], position: [x, y, z] as [number, number, number] };
 };
 
-function Piece({ boxes, color, position }: { boxes: { args: [number, number, number]; position: [number, number, number] }[]; color: string; position: [number, number, number] }) {
+// Generate Diagonal CSG Geometries (Normalized for k=4 => L=12)
+const useDiagonalGeometries = () => {
+    return useMemo(() => {
+        const L_normalized = 12; // Base L for k=4
+        const baseSize = [L_normalized, L_normalized, L_normalized] as [number, number, number];
+        const basePos = [L_normalized / 2, L_normalized / 2, L_normalized / 2] as [number, number, number]; // Center of normalized cube
+
+        // Evaluator
+        const evaluator = new Evaluator();
+        evaluator.attributes = ['position', 'normal'];
+        evaluator.useGroups = false;
+
+        // Base Brush (The Cube)
+        const baseBrush = new Brush(new THREE.BoxGeometry(...baseSize));
+        baseBrush.position.set(...basePos);
+        baseBrush.updateMatrixWorld();
+
+        // --- CUT 1 (XY Plane: y = -x/3 + 8) ---
+        // This plane passes through (0,8), (6,6), (12,4) in the XY plane.
+        // Slope is -1/3. Angle is atan(-1/3).
+        // We want to cut along this plane.
+        // A large box (cutter) will be rotated around the Z-axis.
+        // The pivot point for rotation should be on the plane, e.g., (6,6,6).
+        // The cutter's local origin is (0,0,0).
+        // We want its "bottom" face (local -Y) to define the plane.
+        // So, we translate it up by half its height (15 for 30x30x30 box) before rotation.
+        const cutAngle1 = Math.atan(-1 / 3);
+        const cutter1 = new Brush(new THREE.BoxGeometry(30, 30, 30)); // Large enough to cut
+        cutter1.position.set(0, 15, 0); // Local offset so its bottom face is at local Y=0
+        cutter1.rotation.z = cutAngle1; // Rotate around Z-axis
+
+        // Apply pivot transformation: translate to pivot, rotate, translate back
+        const pivotMatrix1 = new THREE.Matrix4()
+            .makeTranslation(basePos[0], basePos[1], basePos[2]) // Translate to pivot (center of cube)
+            .multiply(new THREE.Matrix4().makeRotationZ(cutAngle1)) // Apply rotation
+            .multiply(new THREE.Matrix4().makeTranslation(-basePos[0], -basePos[1], -basePos[2])); // Translate back
+
+        // Apply the pivot transformation to the cutter
+        cutter1.applyMatrix4(pivotMatrix1);
+        cutter1.updateMatrixWorld();
+
+        // --- CUT 2 (XZ Plane: z = -x/3 + 8) ---
+        // This plane passes through (0,8), (6,6), (12,4) in the XZ plane.
+        // Slope is -1/3. Angle is atan(-1/3).
+        // We want to cut along this plane.
+        // A large box (cutter) will be rotated around the Y-axis.
+        // The pivot point for rotation should be on the plane, e.g., (6,6,6).
+        // The cutter's local origin is (0,0,0).
+        // We want its "bottom" face (local -Z) to define the plane.
+        // So, we translate it up by half its depth (15 for 30x30x30 box) before rotation.
+        const cutAngle2 = Math.atan(-1 / 3);
+        const cutter2 = new Brush(new THREE.BoxGeometry(30, 30, 30)); // Large enough to cut
+        cutter2.position.set(0, 0, 15); // Local offset so its bottom face is at local Z=0
+        cutter2.rotation.y = -cutAngle2; // Rotate around Y-axis (negative angle for correct orientation)
+
+        // Apply pivot transformation
+        const pivotMatrix2 = new THREE.Matrix4()
+            .makeTranslation(basePos[0], basePos[1], basePos[2]) // Translate to pivot (center of cube)
+            .multiply(new THREE.Matrix4().makeRotationY(-cutAngle2)) // Apply rotation
+            .multiply(new THREE.Matrix4().makeTranslation(-basePos[0], -basePos[1], -basePos[2])); // Translate back
+
+        // Apply the pivot transformation to the cutter
+        cutter2.applyMatrix4(pivotMatrix2);
+        cutter2.updateMatrixWorld();
+
+        // --- OPERATIONS ---
+        // The cutters are positioned such that their "bottom" side (relative to their local Y/Z axis)
+        // represents the "lower" part of the cut.
+        // For Cut 1 (XY plane):
+        //   - SUBTRACTION with cutter1 gives the part BELOW the plane (lower Y).
+        //   - INTERSECTION with cutter1 gives the part ABOVE the plane (higher Y).
+        // For Cut 2 (XZ plane):
+        //   - SUBTRACTION with cutter2 gives the part IN FRONT of the plane (lower Z).
+        //   - INTERSECTION with cutter2 gives the part BEHIND the plane (higher Z).
+
+        const process = (op1: typeof SUBTRACTION | typeof INTERSECTION, op2: typeof SUBTRACTION | typeof INTERSECTION) => {
+            // Create fresh brushes for each operation to avoid mutating the original
+            const baseClone = baseBrush.clone();
+            const cutter1Clone = cutter1.clone();
+            const cutter2Clone = cutter2.clone();
+
+            // Step 1: Apply Cut 1
+            const step1Result = evaluator.evaluate(baseClone, cutter1Clone, op1);
+
+            // Step 2: Apply Cut 2 on the result of Step 1
+            const finalResult = evaluator.evaluate(step1Result, cutter2Clone, op2);
+
+            // Clean up and return geometry
+            const geom = mergeVertices(finalResult.geometry);
+            geom.computeVertexNormals();
+            return geom;
+        };
+
+        // Piece 1: Bot-Bot (Below Cut 1, In Front of Cut 2)
+        const geom1 = process(SUBTRACTION, SUBTRACTION);
+        // Piece 2: Bot-Top (Below Cut 1, Behind Cut 2)
+        const geom2 = process(SUBTRACTION, INTERSECTION);
+        // Piece 3: Top-Bot (Above Cut 1, In Front of Cut 2)
+        const geom3 = process(INTERSECTION, SUBTRACTION);
+        // Piece 4: Top-Top (Above Cut 1, Behind Cut 2)
+        const geom4 = process(INTERSECTION, INTERSECTION);
+
+        return [geom1, geom2, geom3, geom4];
+    }, []);
+};
+
+function Piece({ boxes, geometry, color, position, scale = 1 }: { boxes?: { args: [number, number, number]; position: [number, number, number] }[]; geometry?: THREE.BufferGeometry, color: string; position: [number, number, number], scale?: number }) {
     return (
         // @ts-ignore
         <motion.group
             animate={{ x: position[0], y: position[1], z: position[2] }}
             transition={{ type: "spring", stiffness: 40, damping: 12 }}
         >
-            {boxes.map((box, i) => (
-                <mesh key={i} position={box.position} castShadow receiveShadow>
-                    <boxGeometry args={box.args} />
+            {geometry ? (
+                <mesh geometry={geometry} scale={scale} castShadow receiveShadow>
                     <meshStandardMaterial
                         color={color}
                         metalness={0.2}
@@ -38,7 +146,21 @@ function Piece({ boxes, color, position }: { boxes: { args: [number, number, num
                     />
                     <Edges color="black" threshold={45} />
                 </mesh>
-            ))}
+            ) : (
+                boxes?.map((box, i) => (
+                    <mesh key={i} position={box.position} castShadow receiveShadow>
+                        <boxGeometry args={box.args} />
+                        <meshStandardMaterial
+                            color={color}
+                            metalness={0.2}
+                            roughness={0.7}
+                            emissive={color}
+                            emissiveIntensity={0.1}
+                        />
+                        <Edges color="black" threshold={45} />
+                    </mesh>
+                ))
+            )}
         </motion.group>
     );
 }
@@ -82,6 +204,10 @@ function DimensionLine({ start, end, label, color = "white", offset = [0, 0, 0] 
 export default function TurkeyGeneralization() {
     const [k, setK] = useState(4); // Default k=4 (L=12)
     const [isPrism, setIsPrism] = useState(false); // Shape toggle
+    const [isDiagonal, setIsDiagonal] = useState(false); // New Toggle for diagonal cut
+
+    // Pre-calculated diagonal geometries (normalized for L=12)
+    const diagonalGeoms = useDiagonalGeometries();
 
     // Dimensions based on k
     const L = 3 * k;
@@ -92,7 +218,7 @@ export default function TurkeyGeneralization() {
     const s = k / 4;
 
     // Re-calculate pieces based on current K scale
-    const pieces = useMemo(() => [
+    const boxPieces = useMemo(() => [
         {
             id: 1,
             boxes: [
@@ -197,16 +323,28 @@ export default function TurkeyGeneralization() {
                     className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-orange-500"
                 />
 
-                <div className="flex justify-center pt-2">
+                <div className="flex justify-center gap-4 pt-2">
                     <button
                         onClick={() => setIsPrism(!isPrism)}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all border ${isPrism
-                            ? 'bg-blue-600 border-blue-400 hover:bg-blue-500 text-white'
-                            : 'bg-gray-700 border-gray-500 hover:bg-gray-600 text-gray-200'
-                            }`}
+                        className={`flex items - center gap - 2 px - 4 py - 2 rounded - lg font - semibold transition - all border ${
+    isPrism
+        ? 'bg-blue-600 border-blue-400 hover:bg-blue-500 text-white'
+        : 'bg-gray-700 border-gray-500 hover:bg-gray-600 text-gray-200'
+} `}
                     >
                         {isPrism ? <LayoutTemplate size={18} /> : <Box size={18} />}
-                        {isPrism ? 'แสดงรูปทรงลูกบาศก์ (Cube)' : 'แสดงผลลัพธ์ (Prism)'}
+                        {isPrism ? 'Prism' : 'Cube'}
+                    </button>
+                    <button
+                        onClick={() => setIsDiagonal(!isDiagonal)}
+                        className={`flex items - center gap - 2 px - 4 py - 2 rounded - lg font - semibold transition - all border ${
+    isDiagonal
+        ? 'bg-purple-600 border-purple-400 hover:bg-purple-500 text-white'
+        : 'bg-gray-700 border-gray-500 hover:bg-gray-600 text-gray-200'
+} `}
+                    >
+                        {isDiagonal ? <SquareSplitVertical size={18} /> : <LayoutTemplate size={18} />}
+                        {isDiagonal ? 'Diagonal Cut' : 'Staircase Cut'}
                     </button>
                 </div>
 
@@ -232,8 +370,8 @@ export default function TurkeyGeneralization() {
             <div className="w-full h-[500px] bg-gray-900 rounded-3xl overflow-hidden shadow-2xl border border-gray-700 relative">
                 <div className="absolute top-4 left-4 z-10 text-white/50 text-sm pointer-events-none">
                     {isPrism
-                        ? `รูปทรงสี่เหลี่ยมผืนผ้า (${A} x ${A} x ${B})`
-                        : `รูปทรงลูกบาศก์เริ่มต้น (${L} x ${L} x ${L})`
+                        ? `รูปทรงสี่เหลี่ยมผืนผ้า(${ A } x ${ A } x ${ B })`
+                        : `รูปทรงลูกบาศก์เริ่มต้น(${ L } x ${ L } x ${ L })`
                     }
                 </div>
                 <Canvas camera={{ position: [40, 40, 40], fov: 45 }} shadows>
@@ -250,10 +388,13 @@ export default function TurkeyGeneralization() {
                         animate={{ x: centerOffset[0], y: centerOffset[1], z: centerOffset[2] }}
                         transition={{ type: "spring", stiffness: 30, damping: 15 }}
                     >
-                        {pieces.map((piece, index) => (
+                        {boxPieces.map((piece, index) => (
                             <Piece
                                 key={piece.id}
                                 boxes={piece.boxes}
+                                // If diagonal is active, pass the CSG geometry and scale
+                                geometry={isDiagonal ? diagonalGeoms[index] : undefined}
+                                scale={isDiagonal ? s : 1}
                                 color={COLORS[index]}
                                 position={offsets[index] as [number, number, number]}
                             />
@@ -269,7 +410,7 @@ export default function TurkeyGeneralization() {
                         <DimensionLine
                             start={[bounds.minX, bounds.minY - 2, bounds.maxZ + 2]}
                             end={[bounds.maxX, bounds.minY - 2, bounds.maxZ + 2]}
-                            label={`${(bounds.maxX - bounds.minX).toFixed(1)}`}
+                            label={`${ (bounds.maxX - bounds.minX).toFixed(1) } `}
                             color="#FAA300"
                         />
 
@@ -277,7 +418,7 @@ export default function TurkeyGeneralization() {
                         <DimensionLine
                             start={[bounds.minX - 2, bounds.minY, bounds.maxZ + 2]}
                             end={[bounds.minX - 2, bounds.maxY, bounds.maxZ + 2]}
-                            label={`${(bounds.maxY - bounds.minY).toFixed(1)}`}
+                            label={`${ (bounds.maxY - bounds.minY).toFixed(1) } `}
                             color="#FAA300"
                         />
 
@@ -285,7 +426,7 @@ export default function TurkeyGeneralization() {
                         <DimensionLine
                             start={[bounds.maxX + 2, bounds.minY - 2, bounds.minZ]}
                             end={[bounds.maxX + 2, bounds.minY - 2, bounds.maxZ]}
-                            label={`${(bounds.maxZ - bounds.minZ).toFixed(1)}`}
+                            label={`${ (bounds.maxZ - bounds.minZ).toFixed(1) } `}
                             color="#FAA300"
                         />
                     </motion.group>

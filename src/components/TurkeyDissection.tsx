@@ -225,15 +225,15 @@ export default function TurkeyDissection() {
 
   return (
     <div className="flex flex-col items-center gap-8 w-full">
-      <div className="w-full h-[600px] bg-gray-900 rounded-3xl overflow-hidden shadow-2xl border border-gray-700 relative">
-        <div className="absolute top-4 left-4 z-10 bg-black/50 backdrop-blur-md p-4 rounded-xl text-white border border-white/10">
+      <div className="w-full h-[600px] bg-white rounded-3xl overflow-hidden shadow-2xl border border-gray-200 relative">
+        <div className="absolute top-4 left-4 z-10 bg-white/90 backdrop-blur-md p-4 rounded-xl text-black border border-gray-200 shadow-sm">
           <h3 className="font-bold text-lg">ขั้นตอนที่ {step + 1} / 3</h3>
-          <p className="text-sm text-gray-300">
+          <p className="text-sm text-gray-600">
             {step === 0 && 'เริ่มต้น: ลูกบาศก์ขนาด 12 x 12 x 12'}
             {step === 1 && 'การตัดครั้งที่ 1: เลื่อนในแนวระนาบ XY'}
             {step === 2 && 'การตัดครั้งที่ 2: เลื่อนในแนวระนาบ XZ'}
           </p>
-          <p className="text-xs text-blue-400 mt-1 font-mono">
+          <p className="text-xs text-[var(--kfc-red)] mt-1 font-mono">
             {step === 0 && 'เป้าหมาย: เลื่อนแกน X+6, แกน Y-4'}
             {step === 1 && 'ผลลัพธ์: 18 x 8 x 12. ถัดไป: เลื่อนแกน X+9, แกน Z-4'}
             {step === 2 && 'เสร็จสิ้น: ทรงสี่เหลี่ยม 27 x 8 x 8 (4 ชิ้น)'}
@@ -245,16 +245,16 @@ export default function TurkeyDissection() {
               id="explode-view"
               checked={exploded}
               onChange={(e) => setExploded(e.target.checked)}
-              className="w-4 h-4 rounded border-gray-300 text-orange-500 focus:ring-orange-500"
+              className="w-4 h-4 rounded border-gray-300 text-[var(--kfc-red)] focus:ring-[var(--kfc-red)]"
             />
-            <label htmlFor="explode-view" className="text-sm cursor-pointer select-none text-orange-300">
+            <label htmlFor="explode-view" className="text-sm cursor-pointer select-none text-gray-800">
               แยกชิ้นส่วนให้ดูชัดๆ (Explode View)
             </label>
           </div>
         </div>
 
         <Canvas camera={{ position: [30, 25, 30], fov: 45 }} shadows>
-          <color attach="background" args={['#111827']} />
+          <color attach="background" args={['#ffffff']} />
           <OrbitControls makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 1.8} />
 
           <ambientLight intensity={0.4} />
@@ -292,7 +292,7 @@ export default function TurkeyDissection() {
                 start={[bounds.minX, bounds.minY - 2, bounds.maxZ + 2]}
                 end={[bounds.maxX, bounds.minY - 2, bounds.maxZ + 2]}
                 label={`${(bounds.maxX - bounds.minX).toFixed(1)}`}
-                color="#FAA300"
+                color="#E4002B"
               />
 
               {/* Height (Y) */}
@@ -300,7 +300,7 @@ export default function TurkeyDissection() {
                 start={[bounds.minX - 2, bounds.minY, bounds.maxZ + 2]}
                 end={[bounds.minX - 2, bounds.maxY, bounds.maxZ + 2]}
                 label={`${(bounds.maxY - bounds.minY).toFixed(1)}`}
-                color="#FAA300"
+                color="#E4002B"
               />
 
               {/* Depth (Z) */}
@@ -308,7 +308,7 @@ export default function TurkeyDissection() {
                 start={[bounds.maxX + 2, bounds.minY - 2, bounds.minZ]}
                 end={[bounds.maxX + 2, bounds.minY - 2, bounds.maxZ]}
                 label={`${(bounds.maxZ - bounds.minZ).toFixed(1)}`}
-                color="#FAA300"
+                color="#E4002B"
               />
             </motion.group>
           )}
@@ -316,7 +316,7 @@ export default function TurkeyDissection() {
           {/* Floor moves to match the bottom of the centered model */}
           <motion.group animate={{ y: floorY }} transition={{ type: "spring", stiffness: 30, damping: 15 }}>
             <ContactShadows position={[0, -0.1, 0]} opacity={0.5} scale={50} blur={2} far={4.5} />
-            <gridHelper args={[60, 60, 0x444444, 0x222222]} />
+            <gridHelper args={[60, 60, 0xdddddd, 0xeeeeee]} />
           </motion.group>
         </Canvas>
       </div>
@@ -325,20 +325,20 @@ export default function TurkeyDissection() {
         <button
           onClick={prevStep}
           disabled={step === 0}
-          className="flex items-center gap-2 px-6 py-3 bg-gray-800 hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-full font-semibold transition-all border border-gray-600"
+          className="flex items-center gap-2 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-black disabled:opacity-50 disabled:cursor-not-allowed rounded-full font-semibold transition-all border border-gray-300"
         >
           <ArrowLeft size={20} /> ก่อนหน้า
         </button>
         <button
           onClick={reset}
-          className="flex items-center gap-2 px-6 py-3 bg-gray-800 hover:bg-gray-700 rounded-full font-semibold transition-all border border-gray-600"
+          className="flex items-center gap-2 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-black rounded-full font-semibold transition-all border border-gray-300"
         >
           <RotateCcw size={20} /> เริ่มใหม่
         </button>
         <button
           onClick={nextStep}
           disabled={step === 2}
-          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-400 hover:to-red-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-full font-semibold shadow-lg shadow-orange-900/20 transition-all"
+          className="flex items-center gap-2 px-6 py-3 bg-[var(--kfc-red)] hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-full font-semibold shadow-lg shadow-red-900/20 transition-all"
         >
           ขั้นตอนถัดไป <ArrowRight size={20} />
         </button>

@@ -1,8 +1,10 @@
 @import "tailwindcss";
 
 :root {
-  --background: #0f172a;
-  --foreground: #ededed;
+  /* KFC Palette */
+  --background: #ffffff;
+  --foreground: #1c1c1c;
+  --kfc-red: #E4002B;
 }
 
 body {

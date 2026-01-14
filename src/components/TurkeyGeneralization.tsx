@@ -180,10 +180,10 @@ export default function TurkeyGeneralization() {
 
     return (
         <div className="flex flex-col items-center gap-8 w-full">
-            <div className="w-full max-w-md bg-gray-800 p-6 rounded-2xl border border-gray-700 space-y-4">
+            <div className="w-full max-w-md bg-white p-6 rounded-2xl border border-gray-200 shadow-lg space-y-4">
                 <div className="flex justify-between items-center">
-                    <label htmlFor="k-slider" className="text-orange-400 font-bold">ปรับขนาดตัวแปร k: {k}</label>
-                    <span className="text-gray-500 text-sm">(ค่าเริ่มต้น: 4)</span>
+                    <label htmlFor="k-slider" className="text-[var(--kfc-red)] font-bold">ปรับขนาดตัวแปร k: {k}</label>
+                    <span className="text-gray-600 text-sm">(ค่าเริ่มต้น: 4)</span>
                 </div>
                 <input
                     id="k-slider"
@@ -193,7 +193,7 @@ export default function TurkeyGeneralization() {
                     step="0.5"
                     value={k}
                     onChange={(e) => setK(parseFloat(e.target.value))}
-                    className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-orange-500"
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[var(--kfc-red)]"
                 />
 
                 <div className="flex justify-center pt-2">
@@ -201,7 +201,7 @@ export default function TurkeyGeneralization() {
                         onClick={() => setIsPrism(!isPrism)}
                         className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all border ${isPrism
                             ? 'bg-blue-600 border-blue-400 hover:bg-blue-500 text-white'
-                            : 'bg-gray-700 border-gray-500 hover:bg-gray-600 text-gray-200'
+                            : 'bg-gray-100 border-gray-300 hover:bg-gray-200 text-black'
                             }`}
                     >
                         {isPrism ? <LayoutTemplate size={18} /> : <Box size={18} />}
@@ -210,33 +210,33 @@ export default function TurkeyGeneralization() {
                 </div>
 
                 <div className="grid grid-cols-3 gap-4 text-center text-sm">
-                    <div className="bg-gray-900 p-2 rounded-lg">
-                        <div className="text-gray-400">ด้านลูกบาศก์ (L)</div>
-                        <div className="text-white font-mono text-lg">{L}</div>
-                        <div className="text-xs text-gray-600">3 * {k}</div>
+                    <div className="bg-gray-50 p-2 rounded-lg border border-gray-200">
+                        <div className="text-gray-600">ด้านลูกบาศก์ (L)</div>
+                        <div className="text-black font-mono text-lg">{L}</div>
+                        <div className="text-xs text-gray-500">3 * {k}</div>
                     </div>
-                    <div className="bg-gray-900 p-2 rounded-lg">
-                        <div className="text-gray-400">ฐาน (A)</div>
-                        <div className="text-white font-mono text-lg">{A}</div>
-                        <div className="text-xs text-gray-600">2 * {k}</div>
+                    <div className="bg-gray-50 p-2 rounded-lg border border-gray-200">
+                        <div className="text-gray-600">ฐาน (A)</div>
+                        <div className="text-black font-mono text-lg">{A}</div>
+                        <div className="text-xs text-gray-500">2 * {k}</div>
                     </div>
-                    <div className="bg-gray-900 p-2 rounded-lg">
-                        <div className="text-gray-400">ความยาว (B)</div>
-                        <div className="text-white font-mono text-lg">{B}</div>
-                        <div className="text-xs text-gray-600">6.75 * {k}</div>
+                    <div className="bg-gray-50 p-2 rounded-lg border border-gray-200">
+                        <div className="text-gray-600">ความยาว (B)</div>
+                        <div className="text-black font-mono text-lg">{B}</div>
+                        <div className="text-xs text-gray-500">6.75 * {k}</div>
                     </div>
                 </div>
             </div>
 
-            <div className="w-full h-[500px] bg-gray-900 rounded-3xl overflow-hidden shadow-2xl border border-gray-700 relative">
-                <div className="absolute top-4 left-4 z-10 text-white/50 text-sm pointer-events-none">
+            <div className="w-full h-[500px] bg-white rounded-3xl overflow-hidden shadow-2xl border border-gray-200 relative">
+                <div className="absolute top-4 left-4 z-10 text-black/50 text-sm pointer-events-none">
                     {isPrism
                         ? `รูปทรงสี่เหลี่ยมผืนผ้า (${A} x ${A} x ${B})`
                         : `รูปทรงลูกบาศก์เริ่มต้น (${L} x ${L} x ${L})`
                     }
                 </div>
                 <Canvas camera={{ position: [40, 40, 40], fov: 45 }} shadows>
-                    <color attach="background" args={['#111827']} />
+                    <color attach="background" args={['#ffffff']} />
                     <OrbitControls makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 1.8} />
 
                     <ambientLight intensity={0.4} />
@@ -269,7 +269,7 @@ export default function TurkeyGeneralization() {
                             start={[bounds.minX, bounds.minY - 2, bounds.maxZ + 2]}
                             end={[bounds.maxX, bounds.minY - 2, bounds.maxZ + 2]}
                             label={`${(bounds.maxX - bounds.minX).toFixed(1)}`}
-                            color="#FAA300"
+                            color="#E4002B"
                         />
 
                         {/* Height (Y) */}
@@ -277,7 +277,7 @@ export default function TurkeyGeneralization() {
                             start={[bounds.minX - 2, bounds.minY, bounds.maxZ + 2]}
                             end={[bounds.minX - 2, bounds.maxY, bounds.maxZ + 2]}
                             label={`${(bounds.maxY - bounds.minY).toFixed(1)}`}
-                            color="#FAA300"
+                            color="#E4002B"
                         />
 
                         {/* Depth (Z) */}
@@ -285,13 +285,13 @@ export default function TurkeyGeneralization() {
                             start={[bounds.maxX + 2, bounds.minY - 2, bounds.minZ]}
                             end={[bounds.maxX + 2, bounds.minY - 2, bounds.maxZ]}
                             label={`${(bounds.maxZ - bounds.minZ).toFixed(1)}`}
-                            color="#FAA300"
+                            color="#E4002B"
                         />
                     </motion.group>
 
                     <motion.group animate={{ y: floorY }} transition={{ type: "spring", stiffness: 30, damping: 15 }}>
                         <ContactShadows position={[0, -0.1, 0]} opacity={0.5} scale={60} blur={2} far={L + 5} />
-                        <gridHelper args={[100, 100, 0x444444, 0x222222]} />
+                        <gridHelper args={[100, 100, 0xdddddd, 0xeeeeee]} />
                     </motion.group>
                 </Canvas>
             </div>

@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import * as THREE from 'three';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Environment, ContactShadows, Edges } from '@react-three/drei';
+import { OrbitControls, Environment, ContactShadows, Edges, Text, Line } from '@react-three/drei';
 import { motion } from 'framer-motion-3d';
 import { Box, LayoutTemplate } from 'lucide-react';
 
@@ -36,10 +36,46 @@ function Piece({ boxes, color, position }: { boxes: { args: [number, number, num
                         emissive={color}
                         emissiveIntensity={0.1}
                     />
-                    <Edges color="black" threshold={15} />
+                    <Edges color="black" threshold={45} />
                 </mesh>
             ))}
         </motion.group>
+    );
+}
+
+function DimensionLine({ start, end, label, color = "white", offset = [0, 0, 0] }: { start: [number, number, number], end: [number, number, number], label: string, color?: string, offset?: [number, number, number] }) {
+    const p1 = new THREE.Vector3(...start).add(new THREE.Vector3(...offset));
+    const p2 = new THREE.Vector3(...end).add(new THREE.Vector3(...offset));
+    const mid = p1.clone().add(p2).multiplyScalar(0.5);
+
+    // Tick length
+    const tickSize = 1;
+    // We assume offset direction is perpendicular to the line for ticks, 
+    // but for simplicity let's just draw the line and text first.
+    // Ideally ticks go from the object to the dimension line.
+
+    // Simple implementation: Dashed line + Text
+    return (
+        <group>
+            {/* Main Line */}
+            <Line points={[p1, p2]} color={color} opacity={0.5} transparent lineWidth={1} dashed dashScale={2} />
+
+            {/* Ticks (vertical to the line, roughly) - simplified as just endpoints */}
+            <mesh position={p1}><sphereGeometry args={[0.2]} /><meshBasicMaterial color={color} /></mesh>
+            <mesh position={p2}><sphereGeometry args={[0.2]} /><meshBasicMaterial color={color} /></mesh>
+
+            <Text
+                position={[mid.x, mid.y + 0.5, mid.z]}
+                color={color}
+                fontSize={1.5}
+                anchorX="center"
+                anchorY="bottom"
+                outlineWidth={0.1}
+                outlineColor="#000000"
+            >
+                {label}
+            </Text>
+        </group>
     );
 }
 
@@ -92,11 +128,6 @@ export default function TurkeyGeneralization() {
     ], [k]);
 
     // Offsets for Prism State (scaled)
-    // Base offsets for k=4 (Step 2 in Dissection):
-    // P1: 0,0,0
-    // P2: 9, 0, -4
-    // P3: 6, -4, 0
-    // P4: 15, -4, -4
     const offsets = useMemo(() => {
         if (!isPrism) return [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]];
         return [
@@ -107,8 +138,8 @@ export default function TurkeyGeneralization() {
         ];
     }, [isPrism, s]);
 
-    // Auto-centering and floor calculation
-    const { centerOffset, floorY } = useMemo(() => {
+    // Calculate bounds and center
+    const { centerOffset, floorY, bounds } = useMemo(() => {
         let minX = Infinity, minY = Infinity, minZ = Infinity;
         let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
 
@@ -139,12 +170,12 @@ export default function TurkeyGeneralization() {
         const centerZ = (minZ + maxZ) / 2;
 
         const height = maxY - minY;
-        const FLOAT_OFFSET = 3 * (s / 1); // Scale float offset slightly with size? Or keep constant. Keep constant for consistency.
         const calculatedFloorY = (-height / 2) - 3; // Float by 3 units
 
         return {
             centerOffset: [-centerX, -centerY, -centerZ] as [number, number, number],
-            floorY: calculatedFloorY
+            floorY: calculatedFloorY,
+            bounds: { minX, maxX, minY, maxY, minZ, maxZ }
         };
     }, [pieces, offsets, s]);
 
@@ -214,7 +245,7 @@ export default function TurkeyGeneralization() {
                     <directionalLight position={[-10, 10, -10]} intensity={0.5} />
                     <Environment preset="city" />
 
-                    {/* Dynamic scaling group */}
+                    {/* Main Group: Centered */}
                     <motion.group
                         animate={{ x: centerOffset[0], y: centerOffset[1], z: centerOffset[2] }}
                         transition={{ type: "spring", stiffness: 30, damping: 15 }}
@@ -227,6 +258,36 @@ export default function TurkeyGeneralization() {
                                 position={offsets[index] as [number, number, number]}
                             />
                         ))}
+                    </motion.group>
+
+                    {/* Dimension Lines (Placed relative to centerOffset to follow movement) */}
+                    <motion.group
+                        animate={{ x: centerOffset[0], y: centerOffset[1], z: centerOffset[2] }}
+                        transition={{ type: "spring", stiffness: 30, damping: 15 }}
+                    >
+                        {/* Width (X) */}
+                        <DimensionLine
+                            start={[bounds.minX, bounds.minY - 2, bounds.maxZ + 2]}
+                            end={[bounds.maxX, bounds.minY - 2, bounds.maxZ + 2]}
+                            label={`${(bounds.maxX - bounds.minX).toFixed(1)}`}
+                            color="#FAA300"
+                        />
+
+                        {/* Height (Y) */}
+                        <DimensionLine
+                            start={[bounds.minX - 2, bounds.minY, bounds.maxZ + 2]}
+                            end={[bounds.minX - 2, bounds.maxY, bounds.maxZ + 2]}
+                            label={`${(bounds.maxY - bounds.minY).toFixed(1)}`}
+                            color="#FAA300"
+                        />
+
+                        {/* Depth (Z) - Optional but good for 3D */}
+                        <DimensionLine
+                            start={[bounds.maxX + 2, bounds.minY - 2, bounds.minZ]}
+                            end={[bounds.maxX + 2, bounds.minY - 2, bounds.maxZ]}
+                            label={`${(bounds.maxZ - bounds.minZ).toFixed(1)}`}
+                            color="#FAA300"
+                        />
                     </motion.group>
 
                     <motion.group animate={{ y: floorY }} transition={{ type: "spring", stiffness: 30, damping: 15 }}>

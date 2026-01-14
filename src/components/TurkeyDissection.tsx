@@ -282,34 +282,36 @@ export default function TurkeyDissection() {
           </motion.group>
 
           {/* Dimension Lines */}
-          <motion.group
-            animate={{ x: centerOffset[0], y: centerOffset[1], z: centerOffset[2] }}
-            transition={{ type: "spring", stiffness: 30, damping: 15 }}
-          >
-            {/* Width (X) */}
-            <DimensionLine
-              start={[bounds.minX, bounds.minY - 2, bounds.maxZ + 2]}
-              end={[bounds.maxX, bounds.minY - 2, bounds.maxZ + 2]}
-              label={`${(bounds.maxX - bounds.minX).toFixed(1)}`}
-              color="#FAA300"
-            />
+          {!exploded && (
+            <motion.group
+              animate={{ x: centerOffset[0], y: centerOffset[1], z: centerOffset[2] }}
+              transition={{ type: "spring", stiffness: 30, damping: 15 }}
+            >
+              {/* Width (X) */}
+              <DimensionLine
+                start={[bounds.minX, bounds.minY - 2, bounds.maxZ + 2]}
+                end={[bounds.maxX, bounds.minY - 2, bounds.maxZ + 2]}
+                label={`${(bounds.maxX - bounds.minX).toFixed(1)}`}
+                color="#FAA300"
+              />
 
-            {/* Height (Y) */}
-            <DimensionLine
-              start={[bounds.minX - 2, bounds.minY, bounds.maxZ + 2]}
-              end={[bounds.minX - 2, bounds.maxY, bounds.maxZ + 2]}
-              label={`${(bounds.maxY - bounds.minY).toFixed(1)}`}
-              color="#FAA300"
-            />
+              {/* Height (Y) */}
+              <DimensionLine
+                start={[bounds.minX - 2, bounds.minY, bounds.maxZ + 2]}
+                end={[bounds.minX - 2, bounds.maxY, bounds.maxZ + 2]}
+                label={`${(bounds.maxY - bounds.minY).toFixed(1)}`}
+                color="#FAA300"
+              />
 
-            {/* Depth (Z) */}
-            <DimensionLine
-              start={[bounds.maxX + 2, bounds.minY - 2, bounds.minZ]}
-              end={[bounds.maxX + 2, bounds.minY - 2, bounds.maxZ]}
-              label={`${(bounds.maxZ - bounds.minZ).toFixed(1)}`}
-              color="#FAA300"
-            />
-          </motion.group>
+              {/* Depth (Z) */}
+              <DimensionLine
+                start={[bounds.maxX + 2, bounds.minY - 2, bounds.minZ]}
+                end={[bounds.maxX + 2, bounds.minY - 2, bounds.maxZ]}
+                label={`${(bounds.maxZ - bounds.minZ).toFixed(1)}`}
+                color="#FAA300"
+              />
+            </motion.group>
+          )}
 
           {/* Floor moves to match the bottom of the centered model */}
           <motion.group animate={{ y: floorY }} transition={{ type: "spring", stiffness: 30, damping: 15 }}>

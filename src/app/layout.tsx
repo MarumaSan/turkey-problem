@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ปัญหาไก่งวง (Turkey Stuffer Problem)",
-  description: "วิธีการแก้ปัญหาการยัดไส้ไก่งวงด้วยการตัดแบ่ง 4 ชิ้น",
+  title: "Turkey Stuffer Problem",
+  description: "วิธีการแก้ปัญหาการยัดไส้ไก่งวงด้วยการตัดแบ่งเป็น 4 ชิ้น",
 };
 
 export default function RootLayout({

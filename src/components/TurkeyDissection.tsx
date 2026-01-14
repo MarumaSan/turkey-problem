@@ -1,11 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import * as THREE from 'three';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Environment, ContactShadows, Edges, Text, Line } from '@react-three/drei';
+import { OrbitControls, Environment, ContactShadows, Text, Line } from '@react-three/drei';
 import { motion } from 'framer-motion-3d';
-import { ADDITION, Brush, Evaluator } from 'three-bvh-csg';
 import { ArrowLeft, ArrowRight, RotateCcw } from 'lucide-react';
-import { mergeVertices } from 'three-stdlib';
 
 const COLORS = ['#ef4444', '#22c55e', '#3b82f6', '#eab308'];
 
@@ -85,48 +83,7 @@ const OFFSETS = [
   ],
 ];
 
-// Helper to merge boxes into a single geometry using CSG
-const mergeBoxesToGeometry = (boxes: { args: [number, number, number]; position: [number, number, number] }[]) => {
-  if (boxes.length === 0) return new THREE.BoxGeometry(0, 0, 0);
 
-  // For single box, return basic geometry
-  if (boxes.length === 1) {
-    const box = boxes[0];
-    const geom = new THREE.BoxGeometry(...box.args);
-    geom.translate(...box.position);
-    return geom;
-  }
-
-  const evaluator = new Evaluator();
-  evaluator.useGroups = false; // Force single group to help welding
-  evaluator.attributes = ['position', 'normal']; // Only keep position and normal to ensure clean merge
-
-  // Start with the first box
-  const firstBox = boxes[0];
-  let resultBrush = new Brush(
-    new THREE.BoxGeometry(...firstBox.args)
-  );
-  resultBrush.position.set(...firstBox.position);
-  resultBrush.updateMatrixWorld();
-
-  for (let i = 1; i < boxes.length; i++) {
-    const box = boxes[i];
-    const brush = new Brush(
-      new THREE.BoxGeometry(...box.args)
-    );
-    brush.position.set(...box.position);
-    brush.updateMatrixWorld();
-
-    resultBrush = evaluator.evaluate(resultBrush, brush, ADDITION);
-  }
-
-  // Key Step: Merge vertices to remove seams (duplicate vertices at boundary)
-  // CSG usually returns non-indexed geometry. mergeVertices converts to indexed and welds close vertices.
-  const mergedGeometry = mergeVertices(resultBrush.geometry);
-  mergedGeometry.computeVertexNormals();
-
-  return mergedGeometry;
-};
 const SPREAD_DISTANCE = 8;
 
 function DimensionLine({ start, end, label, color = "white", offset = [0, 0, 0] }: { start: [number, number, number], end: [number, number, number], label: string, color?: string, offset?: [number, number, number] }) {
@@ -171,7 +128,7 @@ export default function TurkeyDissection() {
   const reset = () => { setStep(0); setExploded(false); };
 
   // Adjust visualization based on explode state (spread pieces out)
-  const getExplodedPos = (basePos: number[], index: number) => {
+  const getExplodedPos = React.useCallback((basePos: number[], index: number) => {
     if (!exploded) return basePos;
 
     // Step 0: No explosion (Single Piece)
@@ -192,7 +149,7 @@ export default function TurkeyDissection() {
     const xDir = index % 2 === 0 ? -1 : 1;
     const yDir = index < 2 ? -1 : 1;
     return [basePos[0] + xDir * SPREAD_DISTANCE, basePos[1] + yDir * SPREAD_DISTANCE, basePos[2]];
-  };
+  }, [exploded, step]);
 
   // Determine color based on step
   const getPieceColor = (index: number) => {
@@ -247,7 +204,7 @@ export default function TurkeyDissection() {
       floorY: calculatedFloorY,
       bounds: { minX, maxX, minY, maxY, minZ, maxZ }
     };
-  }, [step, exploded]);
+  }, [step, getExplodedPos]);
 
   return (
     <div className="flex flex-col items-center gap-8 w-full">
@@ -375,7 +332,7 @@ export default function TurkeyDissection() {
 
 function Piece({ boxes, color, position }: { boxes: { args: [number, number, number]; position: [number, number, number] }[]; color: string; position: [number, number, number] }) {
   return (
-    // @ts-ignore
+
     <motion.group
       animate={{ x: position[0], y: position[1], z: position[2] }}
       transition={{ type: "spring", stiffness: 40, damping: 12 }}
@@ -383,7 +340,7 @@ function Piece({ boxes, color, position }: { boxes: { args: [number, number, num
       {boxes.map((box, i) => (
         <mesh key={i} position={box.position} castShadow receiveShadow>
           <boxGeometry args={box.args} />
-          {/* @ts-ignore */}
+
           <motion.meshStandardMaterial
             animate={{ color: color }}
             metalness={0.2}

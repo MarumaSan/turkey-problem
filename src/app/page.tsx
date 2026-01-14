@@ -3,7 +3,7 @@
 import React from 'react';
 import TurkeyDissection from '@/components/TurkeyDissection';
 import TurkeyGeneralization from '@/components/TurkeyGeneralization';
-import { CheckCircle2, Ruler, Scissors, ArrowRight } from 'lucide-react';
+import { CheckCircle2, Ruler, Scissors } from 'lucide-react';
 
 export default function Home() {
   return (
@@ -126,7 +126,7 @@ export default function Home() {
                 <div className="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-[var(--kfc-red)]">
                   <h3 className="font-bold text-lg mb-2 text-[var(--kfc-red)]">คำใบ้?</h3>
                   <p className="text-gray-600">
-                    ต้องใช้การตัดแบบ "ขั้นบันได" เพื่อให้สามารถเลื่อนชิ้นส่วนไปประกอบเป็นทรงยาวได้พอดี
+                    ต้องใช้การตัดแบบ &quot;ขั้นบันได&quot; เพื่อให้สามารถเลื่อนชิ้นส่วนไปประกอบเป็นทรงยาวได้พอดี
                   </p>
                 </div>
               </div>
@@ -174,7 +174,7 @@ export default function Home() {
           </div>
           <h2 className="text-4xl font-black italic mb-6 tracking-tight uppercase">Turkey Problem</h2>
           <p className="text-gray-400 mb-8 max-w-lg mx-auto font-medium text-lg italic">
-            "เพราะคณิตศาสตร์... อร่อยจนต้องเลียนิ้ว"
+            &quot;เพราะคณิตศาสตร์... อร่อยจนต้องเลียนิ้ว&quot;
           </p>
           <div className="text-sm text-gray-600 font-mono border-t border-gray-800 pt-8">
             Create by Group 6 For Math Model Reasoning

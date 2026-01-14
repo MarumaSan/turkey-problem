@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import * as THREE from 'three';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Environment, ContactShadows, Edges, Text, Line } from '@react-three/drei';
+import { OrbitControls, Environment, ContactShadows, Text, Line } from '@react-three/drei';
 import { motion } from 'framer-motion-3d';
 import { Box, LayoutTemplate } from 'lucide-react';
 
@@ -21,7 +21,7 @@ const getBox = (xMin: number, xMax: number, yMin: number, yMax: number, zMin: nu
 
 function Piece({ boxes, color, position }: { boxes: { args: [number, number, number]; position: [number, number, number] }[]; color: string; position: [number, number, number] }) {
     return (
-        // @ts-ignore
+
         <motion.group
             animate={{ x: position[0], y: position[1], z: position[2] }}
             transition={{ type: "spring", stiffness: 40, damping: 12 }}
@@ -167,7 +167,7 @@ export default function TurkeyGeneralization() {
         const centerZ = (minZ + maxZ) / 2;
 
         const height = maxY - minY;
-        const FLOAT_OFFSET = 3 * (s / 1); // Scale float offset slightly with size? Or keep constant. Keep constant for consistency.
+
         const calculatedFloorY = (-height / 2) - 3; // Float by 3 units
 
         return {
@@ -175,7 +175,7 @@ export default function TurkeyGeneralization() {
             floorY: calculatedFloorY,
             bounds: { minX, maxX, minY, maxY, minZ, maxZ }
         };
-    }, [pieces, offsets, s]);
+    }, [pieces, offsets]);
 
     return (
         <div className="flex flex-col items-center gap-8 w-full">
@@ -367,7 +367,7 @@ export default function TurkeyGeneralization() {
 
                 <div className="bg-black/5 p-4 rounded-xl text-center">
                     <p className="text-gray-600 italic">
-                        "ดังนั้น เมื่อเราทราบค่า k ใดๆ เราจะสามารถคำนวณหาขนาดของกล่องที่เหมาะสมได้เสมอ"
+                        &quot;ดังนั้น เมื่อเราทราบค่า k ใดๆ เราจะสามารถคำนวณหาขนาดของกล่องที่เหมาะสมได้เสมอ&quot;
                     </p>
                 </div>
             </div>

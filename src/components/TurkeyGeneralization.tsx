@@ -1,4 +1,3 @@
-```javascript
 import React, { useState, useMemo } from 'react';
 import * as THREE from 'three';
 import { Canvas } from '@react-three/fiber';
@@ -269,7 +268,8 @@ export default function TurkeyGeneralization() {
         let minX = Infinity, minY = Infinity, minZ = Infinity;
         let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
 
-        pieces.forEach((piece, i) => {
+        // Use boxPieces for bounding box calculation since they represent the outer envelope well enough
+        boxPieces.forEach((piece, i) => {
             const pos = offsets[i] as [number, number, number];
 
             piece.boxes.forEach(box => {
@@ -303,7 +303,7 @@ export default function TurkeyGeneralization() {
             floorY: calculatedFloorY,
             bounds: { minX, maxX, minY, maxY, minZ, maxZ }
         };
-    }, [pieces, offsets, s]);
+    }, [boxPieces, offsets, s]);
 
     return (
         <div className="flex flex-col items-center gap-8 w-full">
@@ -326,22 +326,20 @@ export default function TurkeyGeneralization() {
                 <div className="flex justify-center gap-4 pt-2">
                     <button
                         onClick={() => setIsPrism(!isPrism)}
-                        className={`flex items - center gap - 2 px - 4 py - 2 rounded - lg font - semibold transition - all border ${
-    isPrism
-        ? 'bg-blue-600 border-blue-400 hover:bg-blue-500 text-white'
-        : 'bg-gray-700 border-gray-500 hover:bg-gray-600 text-gray-200'
-} `}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all border ${isPrism
+                                ? 'bg-blue-600 border-blue-400 hover:bg-blue-500 text-white'
+                                : 'bg-gray-700 border-gray-500 hover:bg-gray-600 text-gray-200'
+                            } `}
                     >
                         {isPrism ? <LayoutTemplate size={18} /> : <Box size={18} />}
                         {isPrism ? 'Prism' : 'Cube'}
                     </button>
                     <button
                         onClick={() => setIsDiagonal(!isDiagonal)}
-                        className={`flex items - center gap - 2 px - 4 py - 2 rounded - lg font - semibold transition - all border ${
-    isDiagonal
-        ? 'bg-purple-600 border-purple-400 hover:bg-purple-500 text-white'
-        : 'bg-gray-700 border-gray-500 hover:bg-gray-600 text-gray-200'
-} `}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all border ${isDiagonal
+                                ? 'bg-purple-600 border-purple-400 hover:bg-purple-500 text-white'
+                                : 'bg-gray-700 border-gray-500 hover:bg-gray-600 text-gray-200'
+                            } `}
                     >
                         {isDiagonal ? <SquareSplitVertical size={18} /> : <LayoutTemplate size={18} />}
                         {isDiagonal ? 'Diagonal Cut' : 'Staircase Cut'}
@@ -370,8 +368,8 @@ export default function TurkeyGeneralization() {
             <div className="w-full h-[500px] bg-gray-900 rounded-3xl overflow-hidden shadow-2xl border border-gray-700 relative">
                 <div className="absolute top-4 left-4 z-10 text-white/50 text-sm pointer-events-none">
                     {isPrism
-                        ? `รูปทรงสี่เหลี่ยมผืนผ้า(${ A } x ${ A } x ${ B })`
-                        : `รูปทรงลูกบาศก์เริ่มต้น(${ L } x ${ L } x ${ L })`
+                        ? `รูปทรงสี่เหลี่ยมผืนผ้า(${A} x ${A} x ${B})`
+                        : `รูปทรงลูกบาศก์เริ่มต้น(${L} x ${L} x ${L})`
                     }
                 </div>
                 <Canvas camera={{ position: [40, 40, 40], fov: 45 }} shadows>
@@ -410,7 +408,7 @@ export default function TurkeyGeneralization() {
                         <DimensionLine
                             start={[bounds.minX, bounds.minY - 2, bounds.maxZ + 2]}
                             end={[bounds.maxX, bounds.minY - 2, bounds.maxZ + 2]}
-                            label={`${ (bounds.maxX - bounds.minX).toFixed(1) } `}
+                            label={`${(bounds.maxX - bounds.minX).toFixed(1)} `}
                             color="#FAA300"
                         />
 
@@ -418,7 +416,7 @@ export default function TurkeyGeneralization() {
                         <DimensionLine
                             start={[bounds.minX - 2, bounds.minY, bounds.maxZ + 2]}
                             end={[bounds.minX - 2, bounds.maxY, bounds.maxZ + 2]}
-                            label={`${ (bounds.maxY - bounds.minY).toFixed(1) } `}
+                            label={`${(bounds.maxY - bounds.minY).toFixed(1)} `}
                             color="#FAA300"
                         />
 
@@ -426,7 +424,7 @@ export default function TurkeyGeneralization() {
                         <DimensionLine
                             start={[bounds.maxX + 2, bounds.minY - 2, bounds.minZ]}
                             end={[bounds.maxX + 2, bounds.minY - 2, bounds.maxZ]}
-                            label={`${ (bounds.maxZ - bounds.minZ).toFixed(1) } `}
+                            label={`${(bounds.maxZ - bounds.minZ).toFixed(1)} `}
                             color="#FAA300"
                         />
                     </motion.group>
